@@ -6,6 +6,7 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Credentials } from './credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { capitalizeWords } from 'src/utils/capitalizeWords';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UsersRepository {
@@ -15,6 +16,7 @@ export class UsersRepository {
     @InjectRepository(Credentials)
     private readonly credentialsRepository: Repository<Credentials>,
     private readonly manager: EntityManager,
+    private readonly mailService: MailService,
   ) {}
   async register(newUser: CreateUserDto): Promise<{ message: string }> {
     const queryRunner = this.manager.connection.createQueryRunner();
@@ -33,8 +35,8 @@ export class UsersRepository {
       )
         throw new BadRequestException('El username ya esta registrado');
 
-        const cityFormatted = capitalizeWords(newUser.city);
-        const countryFormatted = capitalizeWords(newUser.country);
+      const cityFormatted = capitalizeWords(newUser.city);
+      const countryFormatted = capitalizeWords(newUser.country);
 
       const userCreate = await entityManager.save(Users, {
         name: newUser.name,
@@ -46,7 +48,6 @@ export class UsersRepository {
         email: newUser.email,
       });
 
-
       const passwordHash = await bcrypt.hash(newUser.password, 10);
 
       await entityManager.save(Credentials, {
@@ -54,6 +55,11 @@ export class UsersRepository {
         username: newUser.username,
         user: userCreate,
       });
+
+      await this.mailService.sendWelcomeEmail(
+        userCreate.email,
+        userCreate.name,
+      );
 
       await queryRunner.commitTransaction();
       return { message: 'Se registro con exito al usuario' };

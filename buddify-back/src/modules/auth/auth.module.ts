@@ -5,11 +5,11 @@ import { Users } from '../Users/users.entity';
 import { Credentials } from '../Users/credentials/credentials.entity';
 import { UsersRepository } from '../Users/users.repository';
 import { UsersService } from '../Users/users.service';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users,Credentials])],
+  imports: [TypeOrmModule.forFeature([Users, Credentials]), MailModule],
   controllers: [AuthController],
-  providers: [UsersService,UsersRepository]
+  providers: [UsersService, UsersRepository],
 })
-export class AuthModule {
-}
+export class AuthModule {}
