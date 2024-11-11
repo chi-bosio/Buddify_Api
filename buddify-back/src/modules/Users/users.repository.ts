@@ -5,7 +5,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Credentials } from './credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
-import { capitalizeWords } from 'src/utils/capitalizeWords';
+// import { capitalizeWords } from 'src/utils/capitalizeWords';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -35,15 +35,15 @@ export class UsersRepository {
       )
         throw new BadRequestException('El username ya esta registrado');
 
-      const cityFormatted = capitalizeWords(newUser.city);
-      const countryFormatted = capitalizeWords(newUser.country);
+      // const cityFormatted = capitalizeWords(newUser.city);
+      // const countryFormatted = capitalizeWords(newUser.country);
 
       const userCreate = await entityManager.save(Users, {
         name: newUser.name,
         lastname: newUser.lastname,
         birthdate: newUser.birthdate,
-        city: cityFormatted,
-        country: countryFormatted,
+        city: newUser.city,
+        country: newUser.country,
         dni: newUser.dni,
         email: newUser.email,
       });
