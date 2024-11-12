@@ -1,0 +1,168 @@
+{
+  "countries": [
+    {
+      "name": "Argentina",
+      "provinces": [
+        "Buenos Aires",
+        "Córdoba",
+        "Santa Fe",
+        "Mendoza",
+        "Tucumán",
+        "Salta",
+        "San Juan",
+        "Misiones",
+        "Chaco",
+        "Corrientes"
+      ]
+    },
+    {
+      "name": "Brasil",
+      "provinces": [
+        "São Paulo",
+        "Rio de Janeiro",
+        "Bahía",
+        "Minas Gerais",
+        "Paraná",
+        "Rio Grande do Sul",
+        "Pernambuco",
+        "Ceará",
+        "Pará",
+        "Amazonas"
+      ]
+    },
+    {
+      "name": "Chile",
+      "provinces": [
+        "Santiago",
+        "Valparaíso",
+        "Biobío",
+        "Antofagasta",
+        "Araucanía",
+        "Atacama",
+        "Coquimbo",
+        "Los Lagos",
+        "Maule",
+        "Tarapacá"
+      ]
+    },
+    {
+      "name": "Colombia",
+      "provinces": [
+        "Bogotá D.C.",
+        "Antioquia",
+        "Valle del Cauca",
+        "Atlántico",
+        "Santander",
+        "Bolívar",
+        "Cundinamarca",
+        "Tolima",
+        "Magdalena",
+        "Boyacá"
+      ]
+    },
+    {
+      "name": "México",
+      "provinces": [
+        "Ciudad de México",
+        "Jalisco",
+        "Nuevo León",
+        "Puebla",
+        "Guanajuato",
+        "Veracruz",
+        "Chihuahua",
+        "Sonora",
+        "Coahuila",
+        "Yucatán"
+      ]
+    },
+    {
+      "name": "Perú",
+      "provinces": [
+        "Lima",
+        "Cusco",
+        "Arequipa",
+        "La Libertad",
+        "Piura",
+        "Junín",
+        "Lambayeque",
+        "Ancash",
+        "Loreto",
+        "San Martín"
+      ]
+    },
+    {
+      "name": "Ecuador",
+      "provinces": [
+        "Pichincha",
+        "Guayas",
+        "Manabí",
+        "Azuay",
+        "El Oro",
+        "Los Ríos",
+        "Esmeraldas",
+        "Loja",
+        "Imbabura",
+        "Chimborazo"
+      ]
+    },
+    {
+      "name": "Venezuela",
+      "provinces": [
+        "Distrito Capital",
+        "Zulia",
+        "Miranda",
+        "Carabobo",
+        "Aragua",
+        "Lara",
+        "Bolívar",
+        "Táchira",
+        "Anzoátegui",
+        "Barinas"
+      ]
+    },
+    {
+      "name": "Uruguay",
+      "provinces": [
+        "Montevideo",
+        "Canelones",
+        "Maldonado",
+        "Colonia",
+        "Salto",
+        "Paysandú",
+        "Rivera",
+        "Tacuarembó",
+        "San José",
+        "Soriano"
+      ]
+    },
+    {
+      "name": "Paraguay",
+      "provinces": [
+        "Asunción",
+        "Central",
+        "Alto Paraná",
+        "Itapúa",
+        "Cordillera",
+        "Paraguarí",
+        "Guairá",
+        "Caaguazú",
+        "Ñeembucú",
+        "Amambay"
+      ]
+    },
+    {
+      "name": "Bolivia",
+      "provinces": [
+        "La Paz",
+        "Santa Cruz",
+        "Cochabamba",
+        "Oruro",
+        "Potosí",
+        "Chuquisaca",
+        "Tarija",
+        "Beni",
+        "Pando"
+      ]
+    }
+  ]
+}
