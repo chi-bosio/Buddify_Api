@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Credentials } from './credentials/credentials.entity';
+import { Credentials } from '../../Credentials/credentials.entity';
 
 @Entity()
 export class Users {
