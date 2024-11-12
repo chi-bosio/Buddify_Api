@@ -5,7 +5,7 @@ import { UsersService } from '../Users/users.service';
 @Controller('auth')
 export class AuthController {
     constructor(private readonly userService:UsersService){}
-  @Post('singin')
+  @Post('singup')
   register(@Body() newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userService.register(newUser);
   }
