@@ -5,8 +5,5 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
-  @Post()
-  register(@Body() newUser: CreateUserDto): Promise<{ message: string }> {
-    return this.userService.register(newUser);
-  }
+
 }
