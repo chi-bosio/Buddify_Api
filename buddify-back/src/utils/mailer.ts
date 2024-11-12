@@ -15,6 +15,10 @@ const transporter: Transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  //DESACTIVAR EN PRODUCCION
+  tls: {
+    rejectUnauthorized: false, // Desactiva la verificación de certificados
+  },
 });
 
 export const sendMail = async (options: MailOptions): Promise<void> => {

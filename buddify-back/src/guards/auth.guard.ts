@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
       if(user.isAdmin){ 
         roles.push(Role.Admin)
       }else if(user.isPremium){
-        roles.push(Role.Premiun)
+        roles.push(Role.Premium)
       }else{
         roles.push(Role.User)
       }

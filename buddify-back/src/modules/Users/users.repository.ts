@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './users.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/CreateUser.dto';
-import { Credentials } from './credentials/credentials.entity';
+import { Credentials } from '../../Credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { capitalizeWords } from 'src/utils/capitalizeWords';
 import { MailService } from '../mail/mail.service';
