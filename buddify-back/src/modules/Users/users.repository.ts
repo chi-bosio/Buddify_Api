@@ -42,7 +42,7 @@ export class UsersRepository {
         name: newUser.name,
         lastname: newUser.lastname,
         birthdate: newUser.birthdate,
-        city: cityFormatted ,
+        city: cityFormatted,
         country: countryFormatted,
         dni: newUser.dni,
         email: newUser.email,
