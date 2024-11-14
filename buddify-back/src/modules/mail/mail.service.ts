@@ -4,7 +4,7 @@ import { sendMail } from 'src/utils/mailer';
 
 @Injectable()
 export class MailService {
-  async sendWelcomeEmail(emailUser: string, username: string): Promise<void> {
+  async sendWelcomeEmail(emailUser: string, username: string) {
     const mailOptions: MailOptions = {
       to: emailUser,
       subject: '¡Bienvenido/a a la comunidad de Buddify!',
