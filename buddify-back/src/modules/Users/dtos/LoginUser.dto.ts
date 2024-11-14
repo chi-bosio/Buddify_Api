@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, Length} from 'class-validator';
 
 export class LoginUserDto {
   /**
@@ -17,12 +17,5 @@ export class LoginUserDto {
    */
   @IsString()
   @IsNotEmpty()
-  @Matches(
-    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
-    {
-      message:
-        'La contraseña debe tener al menos 6 caracteres, una mayúscula, una minúscula, un número y un carácter especial',
-    },
-  )
   password: string;
 }
