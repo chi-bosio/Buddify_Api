@@ -11,9 +11,7 @@ async function bootstrap() {
   app.use(loggerGblobal);
   app.enableCors()
 
-  const port = process.env.PORT ?? 3001;
-  await app.listen(port);
-  console.log(`Server listening on http://localhost:${port}`);
+  
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Buddify')
@@ -30,8 +28,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
-  console.log('server listening on http://localhost:3000');
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port);
+  console.log(`Server listening on http://localhost:${port}`);
 }
 
 bootstrap();
