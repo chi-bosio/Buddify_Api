@@ -2,10 +2,12 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Credentials } from '../../Credentials/credentials.entity';
+import { Activity } from '../activities/activity.entity';
 
 @Entity()
 export class Users {
@@ -106,4 +108,10 @@ export class Users {
   @OneToOne(() => Credentials)
   @JoinColumn()
   credential: Credentials;
+
+  /**
+   * Relación de uno a muchos con las actividades creadas por el usuario.
+   */
+  @OneToMany(() => Activity, (activity) => activity.creator)
+  activities: Activity[];
 }
