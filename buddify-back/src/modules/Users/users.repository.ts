@@ -55,7 +55,6 @@ export class UsersRepository {
         username: newUser.username,
         user: userCreate,
       });
-
       await this.mailService.sendWelcomeEmail(
         userCreate.email,
         userCreate.name,
