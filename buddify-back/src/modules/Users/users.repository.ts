@@ -18,6 +18,9 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
+  async findById(id: string): Promise<Users>{
+    return await this.usersRepository.findOne({where:{id}});
+  }
   async register(newUser: CreateUserDto): Promise<{ message: string }> {
     const queryRunner = this.manager.connection.createQueryRunner();
     const entityManager = queryRunner.manager;
@@ -63,6 +66,7 @@ export class UsersRepository {
       await queryRunner.commitTransaction();
       return { message: 'Se registro con exito al usuario' };
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
       const status = error.response.statusCode
         ? error.response.statusCode
@@ -74,5 +78,8 @@ export class UsersRepository {
     } finally {
       await queryRunner.release();
     }
+  }
+  async findByEmail(email:string){
+    return await this.usersRepository.findOne({where:{email}})
   }
 }
