@@ -7,14 +7,15 @@ export class MailService {
   async sendWelcomeEmail(emailUser: string, username: string) {
     const mailOptions: MailOptions = {
       to: emailUser,
-      subject: '¡Bienvenido/a a la comunidad de Buddify!',
+      subject: 'Te damos la bienvenida a la comunidad de Buddify!',
       html: `
-            <h1>¡Hola ${username}!</h1>
-            <p>Nos emociona mucho tenerte con nosotros en <strong>Buddify</strong> 🎉</p>
-            <p>¡Ahora formas parte de una comunidad donde podrás conocer personas increíbles y compartir actividades que te apasionan! Desde partidos de fútbol hasta clubes de lectura, hay algo para todos. 🏃‍♂️📚</p>
-            <p>Tu viaje social comienza ahora, y estamos aquí para acompañarte en cada paso. Si alguna vez necesitas ayuda o tienes alguna duda, no dudes en contactarnos. 🤗</p>
-            <p>¡No olvides explorar todas las actividades que tenemos para ti y disfrutar de nuevas experiencias con otros miembros!</p>
-            <p>¡Bienvenido/a a bordo y a disfrutar de este viaje de diversión Buddify</strong></p>
+            <h1>¡Hola, ${username}!</h1>
+            <p>Nos llena de alegría darte la bienvenida a <strong>Buddify</strong> 🎉</p>
+            <p>Ahora eres parte de una comunidad increíble donde podrás conectar con personas únicas y compartir actividades que te apasionan. Desde partidos de fútbol hasta clubes de lectura, ¡hay algo para todas las personas! 🏃‍♂️📚</p>
+            <p>Tu aventura social comienza ahora, y estamos aquí para apoyarte en cada paso del camino. Si en algún momento necesitas ayuda o tienes alguna pregunta, no dudes en contactarnos. 🤗</p>
+            <p>Explora las actividades disponibles, descubre nuevas experiencias y vive momentos inolvidables con otros miembros de nuestra comunidad.</p>
+            <p>¡Te damos la más cálida bienvenida! Disfruta de este viaje lleno de diversión y conexión en <strong>Buddify</strong> ✨</p>
+
             `,
     };
     await sendMail(mailOptions);
