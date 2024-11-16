@@ -45,7 +45,7 @@ export class AuthService {
 
     return {
       message: 'usuario logueado',
-      token,
+      access_token: token
     };
   }
 }
