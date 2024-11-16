@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../../Credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from '../Users/dtos/CreateUser.dto';
+import { UsersService } from '../Users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -12,9 +14,30 @@ export class AuthService {
     @InjectRepository(Credentials)
     private credentialsRepository: Repository<Credentials>,
     private jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(loginUserDto: number | LoginUserDto) {
+      if (typeof loginUserDto === 'number') {
+        const user = await this.usersService.findById(String(loginUserDto));
+    
+        if (!user) {
+          throw new UnauthorizedException('Usuario no encontrado');
+        }
+    
+        const payload = {
+          sub: user.id,
+          isPremium: user.isPremium,
+          isAdmin: user.isAdmin,
+        };
+    
+        const token = this.jwtService.sign(payload);
+    
+        return {
+          message: 'Usuario autenticado con OAuth',
+          token,
+        };
+      }
     const { username, password } = loginUserDto;
 
     const credentials = await this.credentialsRepository.findOne({
@@ -45,7 +68,13 @@ export class AuthService {
 
     return {
       message: 'usuario logueado',
-      token,
+      access_token: token
     };
+  }
+
+  async validateGoogleUser(googleUser:CreateUserDto){
+    const user = await this.usersService.findByEmail(googleUser.email);
+    if(user) return user;
+    return await this.usersService.register(googleUser);
   }
 }
