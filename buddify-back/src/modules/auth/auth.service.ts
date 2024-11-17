@@ -67,6 +67,7 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     return {
+      success: true,
       message: 'usuario logueado',
       access_token: token
     };
