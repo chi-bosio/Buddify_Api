@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Users } from '../Users/users.entity';
+import { Users } from '../users/users.entity';
 
 @Entity({
-  name: "ACTIVITIES",
+  name: "activities",
 })
 export class Activity {
   @PrimaryGeneratedColumn('uuid')

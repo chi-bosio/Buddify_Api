@@ -6,12 +6,12 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Credentials } from '../../Credentials/credentials.entity';
+import { Credentials } from '../credentials/credentials.entity';
 import { Activity } from '../activities/activity.entity';
 
 @Entity()
 export class Users {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**

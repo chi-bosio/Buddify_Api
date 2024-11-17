@@ -1,9 +1,9 @@
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Users } from '../modules/Users/users.entity';
+import { Users } from '../users/users.entity';
 
 @Entity()
 export class Credentials {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   /**

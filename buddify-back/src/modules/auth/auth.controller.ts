@@ -7,10 +7,10 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from '../Users/dtos/CreateUser.dto';
-import { UsersService } from '../Users/users.service';
+import { CreateUserDto } from '../users/dtos/CreateUser.dto';
+import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from '../Users/dtos/LoginUser.dto';
+import { LoginUserDto } from '../users/dtos/LoginUser.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: './.env' });

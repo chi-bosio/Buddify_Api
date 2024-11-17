@@ -1,20 +1,22 @@
-/* import { Controller, Post, Body, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ActivityService } from './activity.service';
-import { CreateActivityDto } from './dto/create-activity.dto';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Activity } from "./activity.entity";
+import { ActivityController } from "./activity.controller";
+import { ActivityService } from "./activity.service";
+import { ActivityRepository } from "./activity.repository";
+import { UsersService } from "../users/users.service";
+import { UsersRepository } from "../users/users.repository";
+import { Users } from "../users/users.entity";
+import { MailService } from "../mail/mail.service";
+import { Credentials } from "src/modules/credentials/credentials.entity";
 
-@Controller('activity')
-export class ActivityController {
-  constructor(private readonly activityService: ActivityService) {}
-
-  @Post()
-  @UseInterceptors(FileInterceptor('image'))
-  async createActivity(
-    @Body() createActivityDto: CreateActivityDto,
-    @UploadedFile() imageFile: Express.Multer.File,
-  ) {
-    return this.activityService.createActivity(createActivityDto, imageFile);
-  }
-} */
-
-// LISTO PARA HABILITAR CUANDO ESTE CLOUDINARY
+@Module({
+    imports: [TypeOrmModule.forFeature([Activity,Users,Credentials])],
+    controllers: [ActivityController],
+    providers: [ActivityService,
+       ActivityRepository,
+       UsersService,
+       UsersRepository,
+       MailService],
+  })
+  export class ActivityModule {}
