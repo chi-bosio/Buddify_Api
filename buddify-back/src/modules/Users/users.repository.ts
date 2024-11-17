@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './users.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/CreateUser.dto';
-import { Credentials } from './credentials/credentials.entity';
+import { Credentials } from '../../Credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { capitalizeWords } from 'src/utils/capitalizeWords';
 import { MailService } from '../mail/mail.service';
@@ -18,6 +18,9 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
+  async findById(id: string): Promise<Users>{
+    return await this.usersRepository.findOne({where:{id}});
+  }
   async register(newUser: CreateUserDto): Promise<{ message: string }> {
     const queryRunner = this.manager.connection.createQueryRunner();
     const entityManager = queryRunner.manager;
@@ -55,7 +58,6 @@ export class UsersRepository {
         username: newUser.username,
         user: userCreate,
       });
-
       await this.mailService.sendWelcomeEmail(
         userCreate.email,
         userCreate.name,
@@ -64,6 +66,7 @@ export class UsersRepository {
       await queryRunner.commitTransaction();
       return { message: 'Se registro con exito al usuario' };
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
       const status = error.response.statusCode
         ? error.response.statusCode
@@ -75,5 +78,8 @@ export class UsersRepository {
     } finally {
       await queryRunner.release();
     }
+  }
+  async findByEmail(email:string){
+    return await this.usersRepository.findOne({where:{email}})
   }
 }

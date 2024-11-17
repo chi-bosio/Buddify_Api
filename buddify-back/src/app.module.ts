@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
   imports: [TypeOrmModule.forRoot(ormConfig), 
     UsersModule,
     AuthModule,
+   
   ],
   controllers: [],
   providers: [],

@@ -1,18 +1,32 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Credentials } from './credentials/credentials.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Credentials } from '../../Credentials/credentials.entity';
+import { Activity } from '../activities/activity.entity';
 
 @Entity()
 export class Users {
   @PrimaryGeneratedColumn()
   id: string;
 
+  /**
+   * Nombre del usuario.
+   */
   @Column({
-    type: 'varchar', 
-    length: 100,      
-    nullable: false,  
+    type: 'varchar',
+    length: 100,
+    nullable: false,
   })
   name: string;
 
+  /**
+   * Apellido del usuario.
+   */
   @Column({
     type: 'varchar',
     length: 100,
@@ -20,20 +34,29 @@ export class Users {
   })
   lastname: string;
 
+  /**
+   * Fecha de nacimiento del usuario.
+   */
   @Column({
-    type: 'date',    
-    nullable: false,  
+    type: 'date',
+    nullable: false,
   })
   birthdate: Date;
 
+  /**
+   * Email del usuario.
+   */
   @Column({
     type: 'varchar',
-    length: 255,     
-    unique: true,     
-    nullable: false, 
+    length: 255,
+    unique: true,
+    nullable: false,
   })
   email: string;
 
+  /**
+   * País de residencia del usuario.
+   */
   @Column({
     type: 'varchar',
     length: 100,
@@ -41,6 +64,9 @@ export class Users {
   })
   country: string;
 
+  /**
+   * Ciudad de residencia del usuario.
+   */
   @Column({
     type: 'varchar',
     length: 100,
@@ -48,6 +74,9 @@ export class Users {
   })
   city: string;
 
+  /**
+   * Pasaporte o DNI del usuario.
+   */
   @Column({
     type: 'varchar',
     length: 20,
@@ -55,19 +84,34 @@ export class Users {
   })
   dni: string;
 
+  /**
+   * Indica si el usuario es premium.
+   */
   @Column({
     type: 'boolean',
-    default: false,  
+    default: false,
   })
   isPremium: boolean;
 
+  /**
+   * Indica si el usuario es administrador.
+   */
   @Column({
     type: 'boolean',
-    default: false, 
+    default: false,
   })
   isAdmin: boolean;
 
+  /**
+   * Relación de uno a uno con las credenciales del usuario.
+   */
   @OneToOne(() => Credentials)
-  @JoinColumn()  
+  @JoinColumn()
   credential: Credentials;
+
+  /**
+   * Relación de uno a muchos con las actividades creadas por el usuario.
+   */
+  @OneToMany(() => Activity, (activity) => activity.creator)
+  activities: Activity[];
 }
