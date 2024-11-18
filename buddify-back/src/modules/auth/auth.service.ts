@@ -17,8 +17,8 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  async login(loginUserDto: number | LoginUserDto) {
-      if (typeof loginUserDto === 'number') {
+  async login(loginUserDto: string | LoginUserDto) {
+      if (typeof loginUserDto === 'string') {
         const user = await this.usersService.findById(String(loginUserDto));
     
         if (!user) {
