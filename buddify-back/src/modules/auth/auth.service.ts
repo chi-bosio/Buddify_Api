@@ -31,11 +31,11 @@ export class AuthService {
           isAdmin: user.isAdmin,
         };
     
-        const token = this.jwtService.sign(payload);
+        const access_token = this.jwtService.sign(payload);
     
         return {
           message: 'Usuario autenticado con OAuth',
-          token,
+          access_token,
         };
       }
     const { username, password } = loginUserDto;
