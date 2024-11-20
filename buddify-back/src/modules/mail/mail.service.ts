@@ -29,7 +29,7 @@ export class MailService {
 
   async sendPasswordResetEmail(emailUser: string, username: string) {
     const resetToken = await this.authService.generateResetToken(emailUser);
-    const resetUrl = `http://localhost:3000/recuperar-contraseña?token=${resetToken}`;
+    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
 
     const mailOptions: MailOptions = {
       to: emailUser,
