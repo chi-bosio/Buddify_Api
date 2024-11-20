@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  NotFoundException,
   Patch,
   Post,
   Req,
@@ -14,6 +16,7 @@ import { AuthService } from './auth.service';
 import { LoginUserDto } from '../users/dtos/LoginUser.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import * as dotenv from 'dotenv';
+import { MailService } from '../mail/mail.service';
 dotenv.config({ path: './.env' });
 
 @Controller('auth')
@@ -21,6 +24,7 @@ export class AuthController {
   constructor(
     private readonly userService: UsersService,
     private readonly authService: AuthService,
+    private readonly mailService: MailService,
   ) {}
   @Post('signup')
   register(@Body() newUser: CreateUserDto): Promise<{ message: string }> {
@@ -43,9 +47,22 @@ export class AuthController {
   }
 
   @Post('generate-reset-token')
-  async generateResetPassword(@Body('email') email: string) {
-    const token = await this.authService.generateResetToken(email);
-    return { token };
+  async generateResetPassword(
+    @Body('email') email: string,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        throw new NotFoundException('No se encontró un usuario con ese email');
+      }
+
+      await this.mailService.sendPasswordResetEmail(email, user.name);
+      return {
+        message: 'Se ha enviado un correo para restablecer la contraseña',
+      };
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 
   @Patch('reset-password')
