@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../users/users.entity';
@@ -11,11 +11,13 @@ import { ConfigModule } from '@nestjs/config';
 import googleOathConfig from 'src/modules/auth/config/google-oath.config';
 import GoogleStrategy from './strategies/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Users, Credentials]),
-    MailModule,
+    forwardRef(() => MailModule),
+    forwardRef(() => UsersModule),
     ConfigModule.forFeature(googleOathConfig),
     JwtModule.register({
       global: true,
@@ -25,5 +27,6 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   controllers: [AuthController],
   providers: [UsersService, UsersRepository, AuthService, GoogleStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

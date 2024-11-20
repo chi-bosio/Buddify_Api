@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../users/dtos/LoginUser.dto';
 import { Repository } from 'typeorm';
@@ -14,30 +19,31 @@ export class AuthService {
     @InjectRepository(Credentials)
     private credentialsRepository: Repository<Credentials>,
     private jwtService: JwtService,
+    @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
   ) {}
 
   async login(loginUserDto: string | LoginUserDto) {
-      if (typeof loginUserDto === 'string') {
-        const user = await this.usersService.findById(String(loginUserDto));
-    
-        if (!user) {
-          throw new UnauthorizedException('Usuario no encontrado');
-        }
-    
-        const payload = {
-          sub: user.id,
-          isPremium: user.isPremium,
-          isAdmin: user.isAdmin,
-        };
-    
-        const access_token = this.jwtService.sign(payload);
-    
-        return {
-          message: 'Usuario autenticado con OAuth',
-          access_token,
-        };
+    if (typeof loginUserDto === 'string') {
+      const user = await this.usersService.findById(String(loginUserDto));
+
+      if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
       }
+
+      const payload = {
+        sub: user.id,
+        isPremium: user.isPremium,
+        isAdmin: user.isAdmin,
+      };
+
+      const access_token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Usuario autenticado con OAuth',
+        access_token,
+      };
+    }
     const { username, password } = loginUserDto;
 
     const credentials = await this.credentialsRepository.findOne({
@@ -69,13 +75,18 @@ export class AuthService {
     return {
       success: true,
       message: 'usuario logueado',
-      access_token: token
+      access_token: token,
     };
   }
 
-  async validateGoogleUser(googleUser:CreateUserDto){
+  async validateGoogleUser(googleUser: CreateUserDto) {
     const user = await this.usersService.findByEmail(googleUser.email);
-    if(user) return user;
+    if (user) return user;
     return await this.usersService.register(googleUser);
+  }
+
+  async generateResetToken(email: string): Promise<string> {
+    const payload = { email };
+    return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
 }
