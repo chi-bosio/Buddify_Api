@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Req,
   Res,
@@ -38,6 +39,21 @@ export class AuthController {
   @Get('/google/callback')
   async googleCallback(@Req() req, @Res() res) {
     const response = await this.authService.login(req.user.id);
-    res.redirect(`${process.env.URL_FRONT}?token=${response.access_token}`)
+    res.redirect(`${process.env.URL_FRONT}?token=${response.access_token}`);
+  }
+
+  @Post('generate-reset-token')
+  async generateResetPassword(@Body('email') email: string) {
+    const token = await this.authService.generateResetToken(email);
+    return { token };
+  }
+
+  @Patch('reset-password')
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ): Promise<{ message: string }> {
+    await this.authService.resetPassword(token, newPassword);
+    return { message: 'Contraseña actualizada con éxito' };
   }
 }

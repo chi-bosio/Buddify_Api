@@ -89,4 +89,19 @@ export class AuthService {
     const payload = { email };
     return this.jwtService.sign(payload, { expiresIn: '1h' });
   }
+
+  async validateResetToken(token: string): Promise<string> {
+    try {
+      const decoded = this.jwtService.verify(token);
+      return decoded.email;
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido o expirado');
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const email = await this.validateResetToken(token);
+
+    await this.usersService.resetPassword(email, newPassword);
+  }
 }
