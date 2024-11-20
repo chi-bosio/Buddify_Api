@@ -18,8 +18,8 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
-  async findById(id: string): Promise<Users>{
-    return await this.usersRepository.findOne({where:{id}});
+  async findById(id: string): Promise<Users> {
+    return await this.usersRepository.findOne({ where: { id } });
   }
   async register(newUser: CreateUserDto): Promise<{ message: string }> {
     const queryRunner = this.manager.connection.createQueryRunner();
@@ -79,7 +79,11 @@ export class UsersRepository {
       await queryRunner.release();
     }
   }
-  async findByEmail(email:string){
-    return await this.usersRepository.findOne({where:{email}})
+  async findByEmail(email: string) {
+    return await this.usersRepository.findOne({ where: { email } });
+  }
+
+  async getUserById(id: string) {
+    return await this.usersRepository.findOne({ where: { id } });
   }
 }

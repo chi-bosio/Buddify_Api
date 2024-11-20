@@ -8,10 +8,13 @@ export class UsersService {
   register(newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userRepository.register(newUser);
   }
-  findByEmail(email:string){
+  findByEmail(email: string) {
     return this.userRepository.findByEmail(email);
   }
   findById(id: string) {
     return this.userRepository.findById(id);
+  }
+  getUserById(id: string) {
+    return this.userRepository.getUserById(id);
   }
 }
