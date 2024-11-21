@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Patch,
   Post,
+  Query,
   Req,
   Request,
   Res,
@@ -20,7 +21,6 @@ import * as dotenv from 'dotenv';
 import { MailService } from '../mail/mail.service';
 import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { request } from 'express';
 dotenv.config({ path: './.env' });
 
 @Controller('auth')
@@ -71,12 +71,13 @@ export class AuthController {
 
   @Patch('reset-password')
   async resetPassword(
-    @Body('token') token: string,
+    @Query('token') token: string,
     @Body('newPassword') newPassword: string,
   ): Promise<{ message: string }> {
     await this.authService.resetPassword(token, newPassword);
     return { message: 'Contraseña actualizada con éxito' };
   }
+
   @Post('change-password')
   @UseGuards(AuthGuard)
   changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
