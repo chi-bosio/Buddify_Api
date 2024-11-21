@@ -88,7 +88,8 @@ export class AuthService {
 
   async generateResetToken(email: string): Promise<string> {
     const payload = { email };
-    return this.jwtService.sign(payload, { expiresIn: '1h' });
+    const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    return resetToken;
   }
 
   async validateResetToken(token: string): Promise<string> {

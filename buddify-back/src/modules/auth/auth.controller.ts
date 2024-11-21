@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -67,7 +68,7 @@ export class AuthController {
 
   @Patch('reset-password')
   async resetPassword(
-    @Body('token') token: string,
+    @Query('token') token: string,
     @Body('newPassword') newPassword: string,
   ): Promise<{ message: string }> {
     await this.authService.resetPassword(token, newPassword);
