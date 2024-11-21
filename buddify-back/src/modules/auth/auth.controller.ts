@@ -21,7 +21,6 @@ import * as dotenv from 'dotenv';
 import { MailService } from '../mail/mail.service';
 import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { request } from 'express';
 dotenv.config({ path: './.env' });
 
 @Controller('auth')
@@ -78,6 +77,7 @@ export class AuthController {
     await this.authService.resetPassword(token, newPassword);
     return { message: 'Contraseña actualizada con éxito' };
   }
+
   @Post('change-password')
   @UseGuards(AuthGuard)
   changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
