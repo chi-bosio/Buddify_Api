@@ -1,12 +1,17 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { CreateActivityDto } from "./dtos/CreateActivity.dto";
-import { Activity } from "./activity.entity";
 import { ActivityService } from "./activity.service";
+import { SearchActivitiesDto } from "./dtos/SearchActivitiesDto.dto";
 
 @Controller('activities')
 
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
+
+  @Get('search')
+  searchActivities(@Query() query: SearchActivitiesDto) {
+    return this.activityService.searchActivities(query);
+  }
 
 
   @Post()
