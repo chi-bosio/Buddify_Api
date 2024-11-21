@@ -12,6 +12,9 @@ import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dtos/CreateUser.dto';
 import { UsersService } from '../users/users.service';
+import { Users } from '../users/users.entity';
+import { UsersRepository } from '../users/users.repository';
+import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +24,8 @@ export class AuthService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
+    @InjectRepository(Users)
+    private usersRepository: UsersRepository,
   ) {}
 
   async login(loginUserDto: string | LoginUserDto) {
@@ -105,5 +110,45 @@ export class AuthService {
     const email = await this.validateResetToken(token);
 
     await this.usersService.resetPassword(email, newPassword);
+  }
+  async changePassword(
+    userId: string,
+    changePswDto: ChangePswDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword, confirmPassword } = changePswDto;
+
+    // Verificamos que las contraseñas coincidan
+    if (newPassword !== confirmPassword) {
+      throw new UnauthorizedException('Las contraseñas no coinciden');
+    }
+
+    // Llamamos al repositorio para obtener las credenciales del usuario
+    const credentials = await this.credentialsRepository.findOne({
+      where: { user: { id: userId } }, // Buscamos las credenciales asociadas al usuario
+      relations: ['user'], // Incluimos la relación con 'user' solo para obtener la información si es necesario
+    });
+
+    if (!credentials) {
+      throw new UnauthorizedException('Credenciales no encontradas');
+    }
+
+    // Verificamos si la contraseña actual es correcta
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      credentials.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+
+    // Encriptamos la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizamos solo la contraseña en las credenciales
+    credentials.password = hashedPassword; // Actualizamos la contraseña
+    await this.credentialsRepository.save(credentials); // Guardamos las credenciales actualizadas
+
+    return { message: 'Contraseña actualizada con éxito' };
   }
 }

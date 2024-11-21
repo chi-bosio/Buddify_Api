@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dtos/CreateUser.dto';
+import { Users } from './users.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,5 +24,8 @@ export class UsersService {
 
   resetPassword(email: string, newPassword: string) {
     return this.userRepository.resetPassword(email, newPassword);
+  }
+  updateUser(id: string, user: Partial<Users>) {
+    return this.userRepository.updateUser(id, user);
   }
 }

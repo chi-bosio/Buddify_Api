@@ -2,6 +2,7 @@ import {
   BadRequestException,
   HttpException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -112,5 +113,13 @@ export class UsersRepository {
 
     credentials.password = hashedPassword;
     await this.credentialsRepository.save(credentials);
+  }
+  async updateUser(id: string, user: Partial<Users>): Promise<Users> {
+    const userExists = await this.usersRepository.findOne({ where: { id } });
+    if (!userExists) {
+      throw new BadRequestException('No existe el usuario');
+    }
+    await this.usersRepository.update(id, user);
+    return userExists;
   }
 }
