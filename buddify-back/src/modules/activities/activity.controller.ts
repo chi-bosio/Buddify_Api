@@ -13,6 +13,10 @@ export class ActivityController {
     return this.activityService.searchActivities(query);
   }
 
+  @Get('user/:userId')
+  async getUserActivities(@Param('userId', ParseUUIDPipe) userId: string) {
+    return this.activityService.getUserActivities(userId);
+  }
 
   @Post()
   async create(@Body() createActivityDto: CreateActivityDto): Promise<{message:string}> {
