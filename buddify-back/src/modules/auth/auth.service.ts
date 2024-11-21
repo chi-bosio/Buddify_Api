@@ -32,6 +32,7 @@ export class AuthService {
       }
 
       const payload = {
+        username: user.name,
         sub: user.id,
         isPremium: user.isPremium,
         isAdmin: user.isAdmin,
@@ -64,7 +65,7 @@ export class AuthService {
     const user = credentials.user;
 
     const payload = {
-      username: credentials.username,
+      name: user.name,
       sub: user.id,
       isPremium: user.isPremium,
       isAdmin: user.isAdmin,

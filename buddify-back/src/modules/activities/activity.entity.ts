@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { Users } from '../users/users.entity';
+import { Category } from '../categories/category.entity';
 
 @Entity({
   name: "activities",
@@ -98,4 +99,25 @@ export class Activity {
     onDelete: 'CASCADE',
   })
   creator: Users;
+  
+  /**
+   * Relación con la entidad `Category`.
+   * Una actividad tiene una categoría.
+   */
+  @ManyToOne(() => Category, (category) => category.activities, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  category: Category;
+
+   /**
+   * Relación de muchos a muchos con los usuarios que participan en la actividad.
+   */
+  @ManyToMany(() => Users, (user) => user.participatedActivities)
+  @JoinTable({
+    name: 'user_activity',
+    joinColumn: { name: 'activityId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
+  })
+  participants: Users[];
 }

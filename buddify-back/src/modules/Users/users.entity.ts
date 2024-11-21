@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -114,6 +116,17 @@ export class Users {
    */
   @OneToMany(() => Activity, (activity) => activity.creator)
   activities: Activity[];
+
+  /**
+   * Relación de muchos a muchos con las actividades en las que el usuario es participante.
+   */
+  @ManyToMany(() => Activity, (activity) => activity.participants)
+  @JoinTable({
+    name: 'user_activity', 
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'activityId', referencedColumnName: 'id' },
+  })
+  participatedActivities: Activity[];
 
   @Column({default:"https://res.cloudinary.com/dtlmrtzpa/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1731928071/avatar16_dsdi8v.png", nullable:false})
     avatar: string;
