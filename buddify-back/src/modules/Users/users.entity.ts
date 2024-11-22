@@ -43,7 +43,7 @@ export class Users {
    * Fecha de nacimiento del usuario.
    */
   @Column({
-    type: 'date',
+    type: 'varchar',
     nullable: false,
   })
   birthdate: Date;
