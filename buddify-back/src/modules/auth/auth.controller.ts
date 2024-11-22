@@ -81,8 +81,7 @@ export class AuthController {
   @Post('change-password')
   @UseGuards(AuthGuard)
   changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
-    const userId = req.user.id;
-    console.log(userId);
+    const userId = req.user.sub;
     return this.authService.changePassword(userId, changePswDto);
   }
 }
