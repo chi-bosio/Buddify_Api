@@ -2,9 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
+  NotFoundException,
+  Patch,
   Post,
   Put,
+  Query,
   Req,
+  Request,
   Res,
   UnauthorizedException,
   UseGuards,
@@ -15,10 +20,13 @@ import { AuthService } from './auth.service';
 import { LoginUserDto } from '../users/dtos/LoginUser.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import * as dotenv from 'dotenv';
+import { MailService } from '../mail/mail.service';
+import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
 dotenv.config({ path: './.env' });
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
+
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +34,7 @@ export class AuthController {
     private readonly userService: UsersService,
     private readonly authService: AuthService,
     private jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
   @Post('signup')
   register(@Body() newUser: CreateUserDto): Promise<{ message: string }> {
@@ -45,8 +54,6 @@ export class AuthController {
   async googleCallback(@Req() req, @Res() res) {
 
     const user = req.user;
-  
-    console.log('Google user:', req.user);//////////
 
     if (!user) {
       throw new UnauthorizedException('No se pudo autenticar con Google');
@@ -61,12 +68,47 @@ export class AuthController {
     };
   
     const token = this.jwtService.sign(payload);
-  
-    console.log(token)///////////
 
     res.redirect(
       `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`
     );
+    const response = await this.authService.login(req.user.id);
+    res.redirect(`${process.env.URL_FRONT}?token=${response.access_token}`);
+  }
+
+  @Post('generate-reset-token')
+  async generateResetPassword(
+    @Body('email') email: string,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        throw new NotFoundException('No se encontró un usuario con ese email');
+      }
+
+      await this.mailService.sendPasswordResetEmail(email, user.name);
+      return {
+        message: 'Se ha enviado un correo para restablecer la contraseña',
+      };
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
+  @Patch('reset-password')
+  async resetPassword(
+    @Query('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ): Promise<{ message: string }> {
+    await this.authService.resetPassword(token, newPassword);
+    return { message: 'Contraseña actualizada con éxito' };
+  }
+
+  @Post('change-password')
+  @UseGuards(AuthGuard)
+  changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
+    const userId = req.user.sub;
+    return this.authService.changePassword(userId, changePswDto);
   }
   
   @UseGuards(AuthGuard)
@@ -76,8 +118,6 @@ async completeProfile(@Body() completeUserDto: CompleteProfileDto, @Req() req, @
   console.log("Request user:", req.user);
 
   const userId = req.user.sub;
-
-  console.log('User ID:', userId);/////////
  
   if (!userId) {
     return res.status(400).json({

@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../users/dtos/LoginUser.dto';
 import { DeepPartial, Repository } from 'typeorm';
@@ -10,6 +15,8 @@ import { UsersService } from '../users/users.service';
 import { Users } from '../users/users.entity';
 import { GoogleUserDto } from '../users/dtos/GoogleUserDto';
 import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
+import { UsersRepository } from '../users/users.repository';
+import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +26,7 @@ export class AuthService {
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
     private jwtService: JwtService,
+    @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
   ) {}
 
@@ -43,9 +51,11 @@ export class AuthService {
     const user = credentials.user;
 
     const payload = {
+      name: user.name,
       sub: user.id,
       isPremium: user.isPremium,
       isAdmin: user.isAdmin,
+      avatar: user.avatar,
     };
 
     const token = this.jwtService.sign(payload);
@@ -53,7 +63,7 @@ export class AuthService {
     return {
       success: true,
       message: 'usuario logueado',
-      access_token: token
+      access_token: token,
     };
   }
 
@@ -67,11 +77,7 @@ export class AuthService {
 
       const isComplete = Boolean(existingUser.birthdate && existingUser.city && existingUser.country && existingUser.dni);
       
-      console.log("Perfil completo:", isComplete); ///////////
-      
       const userWithProfileComplete = { ...existingUser, profileComplete: isComplete };
-
-      console.log("Usuario con profileComplete agregado:", userWithProfileComplete); /////////////
 
       return userWithProfileComplete;
 
@@ -81,7 +87,7 @@ export class AuthService {
         name: googleUser.name,
         lastname: googleUser.lastname,
         username: googleUser.username,
-        birthdate: "",       ////////////        CAMBIAR EL STRING
+        birthdate: "",
         city: "",         
         country: "",      
         dni: "",          
@@ -115,5 +121,61 @@ export class AuthService {
   
     return user;
   }
-  
+
+  async generateResetToken(email: string): Promise<string> {
+    const payload = { email };
+    const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+    return resetToken;
+  }
+
+  async validateResetToken(token: string): Promise<string> {
+    try {
+      const decoded = this.jwtService.verify(token);
+      return decoded.email;
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido o expirado');
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const email = await this.validateResetToken(token);
+
+    await this.usersService.resetPassword(email, newPassword);
+  }
+
+  async changePassword(
+    userId: string,
+    changePswDto: ChangePswDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword, confirmPassword } = changePswDto;
+
+    if (newPassword !== confirmPassword) {
+      throw new UnauthorizedException('Las contraseñas no coinciden');
+    }
+
+    const credentials = await this.credentialsRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+
+    if (!credentials) {
+      throw new UnauthorizedException('Credenciales no encontradas');
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      credentials.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException('La contraseña actual es incorrecta');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    credentials.password = hashedPassword;
+    await this.credentialsRepository.save(credentials);
+
+    return { message: 'Contraseña actualizada con éxito' };
+  }
 }

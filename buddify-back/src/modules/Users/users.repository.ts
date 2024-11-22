@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './users.entity';
 import { EntityManager, Repository } from 'typeorm';
@@ -18,9 +23,11 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
-  async findById(id: string): Promise<Users>{
-    return await this.usersRepository.findOne({where:{id}});
+
+  async findById(id: string): Promise<Users> {
+    return await this.usersRepository.findOne({ where: { id } });
   }
+
   async register(newUser: CreateUserDto): Promise<{ message: string }> {
     const queryRunner = this.manager.connection.createQueryRunner();
     const entityManager = queryRunner.manager;
@@ -79,7 +86,39 @@ export class UsersRepository {
       await queryRunner.release();
     }
   }
-  async findByEmail(email:string){
-    return await this.usersRepository.findOne({where:{email}})
+
+  async findByEmail(email: string) {
+    return await this.usersRepository.findOne({ where: { email } });
+  }
+
+  async getUserById(id: string) {
+    return await this.usersRepository.findOne({ where: { id } });
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    const credentials = await this.credentialsRepository.findOne({
+      where: { user: user },
+    });
+    if (!credentials) {
+      throw new UnauthorizedException('Credenciales no encontradas');
+    }
+
+    credentials.password = hashedPassword;
+    await this.credentialsRepository.save(credentials);
+  }
+  async updateUser(id: string, user: Partial<Users>): Promise<Users> {
+    const userExists = await this.usersRepository.findOne({ where: { id } });
+    if (!userExists) {
+      throw new BadRequestException('No existe el usuario');
+    }
+    await this.usersRepository.update(id, user);
+    return userExists;
   }
 }

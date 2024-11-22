@@ -4,6 +4,9 @@ import { Users } from '../users/users.entity';
 @Entity()
 export class Credentials {
   @PrimaryGeneratedColumn('uuid')
+  /**
+   * ID del usuario.
+   */
   id: string;
 
   /**
