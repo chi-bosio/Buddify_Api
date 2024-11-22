@@ -162,7 +162,7 @@ async joinActivity(activityId: string, userId: string): Promise<{message:string;
   async getUserActivities(userId: string):Promise<{created:Activity[];joined:Activity[]}> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['participatedActivities'],
+      relations: ['participatedActivities', 'participatedActivities.creator'],
     });
   
     if (!user) {

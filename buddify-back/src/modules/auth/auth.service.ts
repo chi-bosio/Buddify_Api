@@ -41,6 +41,7 @@ export class AuthService {
         sub: user.id,
         isPremium: user.isPremium,
         isAdmin: user.isAdmin,
+        avatar: user.avatar,
       };
 
       const access_token = this.jwtService.sign(payload);
@@ -74,6 +75,7 @@ export class AuthService {
       sub: user.id,
       isPremium: user.isPremium,
       isAdmin: user.isAdmin,
+      avatar: user.avatar,
     };
 
     const token = this.jwtService.sign(payload);
