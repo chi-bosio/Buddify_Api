@@ -13,6 +13,9 @@ import { Activity } from '../activities/activity.entity';
 
 @Entity()
 export class Users {
+  /**
+   * ID del usuario.
+   */
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -122,12 +125,19 @@ export class Users {
    */
   @ManyToMany(() => Activity, (activity) => activity.participants)
   @JoinTable({
-    name: 'user_activity', 
+    name: 'user_activity',
     joinColumn: { name: 'userId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'activityId', referencedColumnName: 'id' },
   })
   participatedActivities: Activity[];
 
-  @Column({default:"https://res.cloudinary.com/dtlmrtzpa/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1731928071/avatar16_dsdi8v.png", nullable:false})
-    avatar: string;
-  }
+  /**
+   * Avatar del usuario.
+   */
+  @Column({
+    default:
+      'https://res.cloudinary.com/dtlmrtzpa/image/upload/w_1000,c_fill,ar_1:1,g_auto,r_max,bo_5px_solid_red,b_rgb:262c35/v1731928071/avatar16_dsdi8v.png',
+    nullable: false,
+  })
+  avatar: string;
+}
