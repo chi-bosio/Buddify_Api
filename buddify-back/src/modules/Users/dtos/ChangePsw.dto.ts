@@ -1,10 +1,16 @@
 import { IsString, Matches, IsNotEmpty } from 'class-validator';
 
 export class ChangePswDto {
+  /**
+   * Contraseña actual del usuario.
+   */
   @IsString()
   @IsNotEmpty()
   currentPassword: string;
 
+  /**
+   * Nueva contraseña del usuario.
+   */
   @IsString()
   @IsNotEmpty()
   @Matches(
@@ -16,6 +22,9 @@ export class ChangePswDto {
   )
   newPassword: string;
 
+  /**
+   * Confirmación de la nueva contraseña.
+   */
   @IsString()
   @IsNotEmpty()
   confirmPassword: string;
