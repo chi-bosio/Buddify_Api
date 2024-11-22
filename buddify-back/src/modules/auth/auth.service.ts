@@ -113,28 +113,26 @@ export class AuthService {
 
     await this.usersService.resetPassword(email, newPassword);
   }
+
   async changePassword(
     userId: string,
     changePswDto: ChangePswDto,
   ): Promise<{ message: string }> {
     const { currentPassword, newPassword, confirmPassword } = changePswDto;
 
-    // Verificamos que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
       throw new UnauthorizedException('Las contraseñas no coinciden');
     }
 
-    // Llamamos al repositorio para obtener las credenciales del usuario
     const credentials = await this.credentialsRepository.findOne({
-      where: { user: { id: userId } }, // Buscamos las credenciales asociadas al usuario
-      relations: ['user'], // Incluimos la relación con 'user' solo para obtener la información si es necesario
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
 
     if (!credentials) {
       throw new UnauthorizedException('Credenciales no encontradas');
     }
 
-    // Verificamos si la contraseña actual es correcta
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
       credentials.password,
@@ -144,12 +142,10 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña actual es incorrecta');
     }
 
-    // Encriptamos la nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Actualizamos solo la contraseña en las credenciales
-    credentials.password = hashedPassword; // Actualizamos la contraseña
-    await this.credentialsRepository.save(credentials); // Guardamos las credenciales actualizadas
+    credentials.password = hashedPassword;
+    await this.credentialsRepository.save(credentials);
 
     return { message: 'Contraseña actualizada con éxito' };
   }

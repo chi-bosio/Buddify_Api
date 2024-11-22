@@ -1,4 +1,4 @@
-import { IsString, MinLength, Matches, IsNotEmpty } from 'class-validator';
+import { IsString, Matches, IsNotEmpty } from 'class-validator';
 
 export class ChangePswDto {
   @IsString()
@@ -7,9 +7,13 @@ export class ChangePswDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(8)
-  @Matches(/[A-Z]/, { message: 'Debe incluir al menos una letra mayúscula.' })
-  @Matches(/[0-9]/, { message: 'Debe incluir al menos un número.' })
+  @Matches(
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+    {
+      message:
+        'La contraseña debe tener al menos 6 caracteres, una mayúscula, una minúscula, un número y un carácter especial',
+    },
+  )
   newPassword: string;
 
   @IsString()
