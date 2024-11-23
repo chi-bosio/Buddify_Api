@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { Users } from '../users/users.entity';
 import { Category } from '../categories/category.entity';
+import { ActivityStatus } from './enums/ActivityStatus.enum';
 
 @Entity({
   name: "activities",
@@ -120,4 +121,15 @@ export class Activity {
     inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
   })
   participants: Users[];
+
+  /**
+   * Estado de la actividad.
+   * Puede ser "pending", "confirmed" o "cancelled".
+   */
+  @Column({
+    type: 'enum',
+    enum: ActivityStatus,
+    default: ActivityStatus.PENDING,
+})
+  status: ActivityStatus;
 }
