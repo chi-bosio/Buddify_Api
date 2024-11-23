@@ -52,29 +52,33 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('/google/callback')
   async googleCallback(@Req() req, @Res() res) {
-
     const user = req.user;
-
+  
     if (!user) {
       throw new UnauthorizedException('No se pudo autenticar con Google');
     }
   
     const profileComplete = user.profileComplete;
   
+    // Crear payload para el token
     const payload = {
+      name: user.name,
       sub: user.id,
       isPremium: user.isPremium,
       isAdmin: user.isAdmin,
+      avatar: user.avatar,
     };
   
+    // Generar el token JWT
     const token = this.jwtService.sign(payload);
-
-    res.redirect(
-      `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`
-    );
-    const response = await this.authService.login(req.user.id);
-    res.redirect(`${process.env.URL_FRONT}?token=${response.access_token}`);
+  
+    // Construir la URL de redirección
+    const redirectUrl = `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`;
+  
+    // Redirigir al frontend
+    return res.redirect(redirectUrl);
   }
+  
 
   @Post('generate-reset-token')
   async generateResetPassword(
