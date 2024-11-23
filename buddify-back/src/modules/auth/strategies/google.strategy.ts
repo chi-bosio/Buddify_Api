@@ -22,7 +22,6 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-    console.log('Google Profile:', profile);
 
     const date: Date = new Date("1990-01-01");
 
@@ -40,7 +39,6 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
 
     const user = await this.authService.validateGoogleUser(googleUser);
 
-    // Simplemente devuelve al usuario con el estado de perfil
     done(null, user);
 }
 
