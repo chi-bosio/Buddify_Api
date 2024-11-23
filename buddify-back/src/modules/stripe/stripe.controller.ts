@@ -6,20 +6,34 @@ export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post('create-payment-intent')
-  async createPaymentIntent(
-    @Body() body: { amount: number; currency: string },
-  ) {
-    const { amount, currency } = body;
-    const paymentIntent = await this.stripeService.createPaymentIntent(
-      amount,
-      currency,
-    );
-    if (!paymentIntent.client_secret) {
+  async createPaymentIntent(@Body() body: any) {
+    console.log('Body recibido:', body); // Log para ver lo que llega
+
+    const { planId, planName, planPrice, currency, userId, userName } = body;
+
+    if (!planId || !planName || !planPrice || !currency) {
       throw new Error(
-        'No se ha generado el client_secret para el PaymentIntent',
+        'Faltan parámetros necesarios para crear el PaymentIntent',
       );
     }
 
-    return { clientSecret: paymentIntent.client_secret };
+    const amount = Math.round(planPrice * 100);
+
+    const paymentIntent = await this.stripeService.createPaymentIntent(
+      amount,
+      currency,
+      userId,
+      userName,
+      planId,
+      planName,
+    );
+
+    if (!paymentIntent.clientSecret) {
+      throw new Error(
+        'No se ha generado el clientSecret para el PaymentIntent',
+      );
+    }
+
+    return { clientSecret: paymentIntent.clientSecret };
   }
 }
