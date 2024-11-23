@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { registerAs } from '@nestjs/config';
-dotenv.config({path:'./.env'});
+dotenv.config({path:'./.env.local'});
 
 export default registerAs("googleOAuth",()=>({
     clientID: process.env.GOOGLE_CLIENTE_ID,
