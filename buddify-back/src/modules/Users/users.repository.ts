@@ -12,6 +12,7 @@ import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { capitalizeWords } from 'src/utils/capitalizeWords';
 import { MailService } from '../mail/mail.service';
+import { UpdateUserPremiumStatusDto } from './dtos/ChangeIsPremium';
 
 @Injectable()
 export class UsersRepository {
@@ -120,5 +121,26 @@ export class UsersRepository {
     }
     await this.usersRepository.update(id, user);
     return userExists;
+  }
+
+  async updateUserPremiumStatus(
+    id: string,
+    updatePremiumStatusDto: UpdateUserPremiumStatusDto,
+  ): Promise<{ success: boolean; message: string; user: Users }> {
+    const user = await this.getUserById(id);
+
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    user.isPremium = updatePremiumStatusDto.isPremium;
+
+    const updatedUser = await this.usersRepository.save(user);
+
+    return {
+      success: true,
+      message: 'Estado de Premium actualizado correctamente',
+      user: updatedUser,
+    };
   }
 }
