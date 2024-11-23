@@ -31,4 +31,12 @@ export class ActivityController {
     return this.activityService.joinActivity(activityId, userId);
   }
 
+  @Post(':activityId/cancell/:userId')
+  async cancellActivity(
+    @Param('activityId', ParseUUIDPipe) activityId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    return this.activityService.cancellActivity(activityId, userId);
+  }
+
 }

@@ -18,6 +18,9 @@ export class ActivityService {
   async joinActivity(activityId: string, userId: string): Promise<{message:string}> {
     return this.activityRepository.joinActivity(activityId,userId);
   }
+  async cancellActivity(activityId: string, userId: string): Promise<{message:string}> {
+    return this.activityRepository.cancellActivity(activityId,userId);
+  }
 
   async getUserActivities(userId: string):Promise<{created:Activity[];joined:Activity[]}> {
     return this.activityRepository.getUserActivities(userId)

@@ -4,7 +4,6 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import googleOathConfig from '../config/google-oath.config';
 import { ConfigType } from '@nestjs/config';
 import { AuthService } from '../auth.service';
-import { GoogleUserDto } from 'src/modules/users/dtos/GoogleUserDto';
 import { CreateUserDto } from 'src/modules/users/dtos/CreateUser.dto';
 
 @Injectable()
@@ -22,7 +21,7 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-
+  
     const date: Date = new Date("1990-01-01");
 
     const googleUser: CreateUserDto = {
