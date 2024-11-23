@@ -2,11 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { CreateActivityDto } from "./dtos/CreateActivity.dto";
 import { Activity } from "./activity.entity";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { SearchActivitiesDto } from "./dtos/SearchActivitiesDto.dto";
 import { Category } from "../categories/category.entity";
 import { Users } from "../users/users.entity";
 import { EntityManager } from "typeorm";
+import { ActivityStatus } from "./enums/ActivityStatus.enum";
 
 @Injectable()
 export class ActivityRepository {
@@ -69,7 +70,7 @@ async searchActivities(query: SearchActivitiesDto): Promise<{ data: any[]; total
     
     queryBuilder.andWhere('activity.creatorId != :userId', { userId });
     queryBuilder.andWhere('activity.id NOT IN (SELECT "activityId" FROM user_activity WHERE "userId" = :userId)', { userId });
-    
+    queryBuilder.andWhere('activity.status IN (:...statuses)', { statuses: [ActivityStatus.PENDING, ActivityStatus.CONFIRMED] });//solo devuelve activity si el status es pending  o confirmed
     if (categoryId) {
       queryBuilder.andWhere('activity.category.id = :categoryId', { categoryId });
     }
@@ -99,6 +100,7 @@ async searchActivities(query: SearchActivitiesDto): Promise<{ data: any[]; total
     place: activity.place,
     latitude: activity.latitude,
     longitude: activity.longitude,
+    status:activity.status,
     creator: {
       name: activity.creator?.name || '',
       lastname: activity.creator?.lastname || '',
@@ -121,12 +123,12 @@ async joinActivity(activityId: string, userId: string): Promise<{message:string;
 
         try {
           const activity = await queryRunner.manager.findOne(Activity, {
-            where: { id: activityId },
-            relations: ["participants"],
+            where: { id: activityId,  status: In([ActivityStatus.PENDING, ActivityStatus.CONFIRMED])},
+            relations: ["participants","creator"],
           });
           
           if (!activity) {
-            throw new NotFoundException("Actividad inexistente");
+            throw new NotFoundException("Actividad inexistente o cancelada");
           }
           
           const user = await queryRunner.manager.findOne(Users, { where: { id: userId }, relations: ["participatedActivities"] });
@@ -136,13 +138,15 @@ async joinActivity(activityId: string, userId: string): Promise<{message:string;
           }
           
       const isParticipant = activity.participants.some(p => p.id === user.id);
-      if (isParticipant) {
+      if (isParticipant || activity.creator.id === user.id) {
         throw new BadRequestException("El usuario ya es participante en esta actividad");
       }
-
+        
       user.participatedActivities.push(activity);
       activity.participants.push(user);
-      
+      if(activity.status === ActivityStatus.PENDING && activity.participants.length === 5){ //confirmamos la actividad
+        activity.status = ActivityStatus.CONFIRMED
+      }
       await queryRunner.manager.save(user);
       await queryRunner.manager.save(activity);
       
@@ -158,13 +162,68 @@ async joinActivity(activityId: string, userId: string): Promise<{message:string;
       await queryRunner.release();
     }
   }
+
+async cancellActivity(activityId: string, userId: string): Promise<{message:string;}> {
+  let message = "";
+  const queryRunner = this.manager.connection.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+  try {
+    const activity = await queryRunner.manager.findOne(Activity, {
+      where: { id: activityId},
+      relations: ["creator","participants"],
+    });
+    
+    if (!activity) {
+      throw new NotFoundException("Actividad inexistente");
+    }
+    
+    const user = await queryRunner.manager.findOne(Users, { where: { id: userId }, relations: ["participatedActivities"] });
+    
+    if (!user) {
+      throw new NotFoundException("Usuario inexistente");
+    }
+    
+    const isParticipant = activity.participants.some(p => p.id === user.id);
+    if (isParticipant) {
+      console.log("Participante")
+      user.participatedActivities = user.participatedActivities.filter(act => act.id !== activity.id);
+      activity.participants=activity.participants.filter(p => p.id === user.id);
+      if(activity.status === ActivityStatus.CONFIRMED&& activity.participants.length < 5){ //si el nro de parcipante baja la actividad pasa a pendiente
+        activity.status = ActivityStatus.PENDING 
+      }
+      await queryRunner.manager.save(activity);
+      await queryRunner.manager.save(user);
+      message = "Ya no eres participante de la actividad!"
+    }else if(activity.creator.id === user.id){
+      console.log("Creador")
+      if(activity.status === ActivityStatus.CANCELLED) throw new BadRequestException('La actividad ya a sido cancelada')
+      activity.status = ActivityStatus.CANCELLED;
+      await queryRunner.manager.save(activity);
+      message = "Actividad cancelada con exito!"
+    } else {
+      console.log("Burro")
+      throw new BadRequestException('No participas de esta actividad o no eres el creador')
+    }
+
+    await queryRunner.commitTransaction();
+
+    return {message}
+    } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw error;
+    } finally {
+    await queryRunner.release();
+    }
+ 
+  }
   
-  async getUserActivities(userId: string):Promise<{created:Activity[];joined:Activity[]}> {
+async getUserActivities(userId: string):Promise<{created:Activity[];joined:Activity[]}> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['participatedActivities', 'participatedActivities.creator'],
+      relations: ['participatedActivities', 'participatedActivities.category','participatedActivities.creator'],
     });
-  
+    user.participatedActivities = user.participatedActivities.filter(act => act.status !== ActivityStatus.CANCELLED )
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
     }
