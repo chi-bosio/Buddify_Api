@@ -6,10 +6,12 @@ import {
   NotFoundException,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   Request,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { CreateUserDto } from '../users/dtos/CreateUser.dto';
@@ -22,12 +24,16 @@ import { MailService } from '../mail/mail.service';
 import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 dotenv.config({ path: './.env' });
+import { JwtService } from '@nestjs/jwt';
+import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
+
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly userService: UsersService,
     private readonly authService: AuthService,
+    private jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
   @Post('signup')
@@ -46,6 +52,26 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('/google/callback')
   async googleCallback(@Req() req, @Res() res) {
+
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedException('No se pudo autenticar con Google');
+    }
+  
+    const profileComplete = user.profileComplete;
+  
+    const payload = {
+      sub: user.id,
+      isPremium: user.isPremium,
+      isAdmin: user.isAdmin,
+    };
+  
+    const token = this.jwtService.sign(payload);
+
+    res.redirect(
+      `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`
+    );
     const response = await this.authService.login(req.user.id);
     res.redirect(`${process.env.URL_FRONT}?token=${response.access_token}`);
   }
@@ -81,8 +107,30 @@ export class AuthController {
   @Post('change-password')
   @UseGuards(AuthGuard)
   changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
-    const userId = req.user.id;
-    console.log(userId);
+    const userId = req.user.sub;
     return this.authService.changePassword(userId, changePswDto);
   }
+  
+  @UseGuards(AuthGuard)
+  @Put('/completeprofile')
+async completeProfile(@Body() completeUserDto: CompleteProfileDto, @Req() req, @Res() res) {
+  console.log("Solicitud recibida en /auth/completeprofile:", completeUserDto);
+  console.log("Request user:", req.user);
+
+  const userId = req.user.sub;
+ 
+  if (!userId) {
+    return res.status(400).json({
+      message: 'No se pudo identificar al usuario',
+    });
+  }
+
+  const updatedUser = await this.authService.updateUserProfile(userId, completeUserDto);
+
+  return res.status(200).json({
+    message: 'Perfil actualizado con éxito',
+    user: updatedUser,
+  });
+}
+
 }

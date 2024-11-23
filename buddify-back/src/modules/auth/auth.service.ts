@@ -6,13 +6,15 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../users/dtos/LoginUser.dto';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dtos/CreateUser.dto';
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users.entity';
+import { GoogleUserDto } from '../users/dtos/GoogleUserDto';
+import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
 import { UsersRepository } from '../users/users.repository';
 import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
 
@@ -21,36 +23,14 @@ export class AuthService {
   constructor(
     @InjectRepository(Credentials)
     private credentialsRepository: Repository<Credentials>,
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
-    @InjectRepository(Users)
-    private usersRepository: UsersRepository,
   ) {}
 
-  async login(loginUserDto: string | LoginUserDto) {
-    if (typeof loginUserDto === 'string') {
-      const user = await this.usersService.findById(String(loginUserDto));
-
-      if (!user) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
-
-      const payload = {
-        username: user.name,
-        sub: user.id,
-        isPremium: user.isPremium,
-        isAdmin: user.isAdmin,
-        avatar: user.avatar,
-      };
-
-      const access_token = this.jwtService.sign(payload);
-
-      return {
-        message: 'Usuario autenticado con OAuth',
-        access_token,
-      };
-    }
+  async login(loginUserDto: LoginUserDto) {
     const { username, password } = loginUserDto;
 
     const credentials = await this.credentialsRepository.findOne({
@@ -87,10 +67,59 @@ export class AuthService {
     };
   }
 
-  async validateGoogleUser(googleUser: CreateUserDto) {
-    const user = await this.usersService.findByEmail(googleUser.email);
-    if (user) return user;
-    return await this.usersService.register(googleUser);
+  async validateGoogleUser(googleUser: GoogleUserDto) {
+ 
+    const existingUser = await this.usersRepository.findOne({ where: { email: googleUser.email } });
+
+    console.log("Usuario encontrado:", existingUser ? "Sí" : "No");
+
+    if (existingUser) {
+
+      const isComplete = Boolean(existingUser.birthdate && existingUser.city && existingUser.country && existingUser.dni);
+      
+      const userWithProfileComplete = { ...existingUser, profileComplete: isComplete };
+
+      return userWithProfileComplete;
+
+    } else {
+      const newUser = this.usersRepository.create({
+        email: googleUser.email,
+        name: googleUser.name,
+        lastname: googleUser.lastname,
+        username: googleUser.username,
+        birthdate: "",
+        city: "",         
+        country: "",      
+        dni: "",          
+        password: "",     
+        isPremium: false, 
+        isAdmin: false,   
+        credential: null, 
+        activities: []    
+      } as DeepPartial<Users>);
+
+      await this.usersRepository.save(newUser);
+
+      return { ...newUser, profileComplete: false };
+    }
+}
+  
+  async updateUserProfile(userId: string, completeUserDto: CompleteProfileDto) {
+    console.log("USERRRR:", userId)
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+  
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+  
+    user.birthdate = completeUserDto.birthdate || user.birthdate;
+    user.city = completeUserDto.city || user.city;
+    user.country = completeUserDto.country || user.country;
+    user.dni = completeUserDto.dni || user.dni;
+  
+    await this.usersRepository.save(user);
+  
+    return user;
   }
 
   async generateResetToken(email: string): Promise<string> {
@@ -113,28 +142,26 @@ export class AuthService {
 
     await this.usersService.resetPassword(email, newPassword);
   }
+
   async changePassword(
     userId: string,
     changePswDto: ChangePswDto,
   ): Promise<{ message: string }> {
     const { currentPassword, newPassword, confirmPassword } = changePswDto;
 
-    // Verificamos que las contraseñas coincidan
     if (newPassword !== confirmPassword) {
       throw new UnauthorizedException('Las contraseñas no coinciden');
     }
 
-    // Llamamos al repositorio para obtener las credenciales del usuario
     const credentials = await this.credentialsRepository.findOne({
-      where: { user: { id: userId } }, // Buscamos las credenciales asociadas al usuario
-      relations: ['user'], // Incluimos la relación con 'user' solo para obtener la información si es necesario
+      where: { user: { id: userId } },
+      relations: ['user'],
     });
 
     if (!credentials) {
       throw new UnauthorizedException('Credenciales no encontradas');
     }
 
-    // Verificamos si la contraseña actual es correcta
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
       credentials.password,
@@ -144,12 +171,10 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña actual es incorrecta');
     }
 
-    // Encriptamos la nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Actualizamos solo la contraseña en las credenciales
-    credentials.password = hashedPassword; // Actualizamos la contraseña
-    await this.credentialsRepository.save(credentials); // Guardamos las credenciales actualizadas
+    credentials.password = hashedPassword;
+    await this.credentialsRepository.save(credentials);
 
     return { message: 'Contraseña actualizada con éxito' };
   }
