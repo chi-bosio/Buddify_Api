@@ -60,7 +60,6 @@ export class AuthController {
   
     const profileComplete = user.profileComplete;
   
-    // Crear payload para el token
     const payload = {
       name: user.name,
       sub: user.id,
@@ -69,17 +68,13 @@ export class AuthController {
       avatar: user.avatar,
     };
   
-    // Generar el token JWT
     const token = this.jwtService.sign(payload);
   
-    // Construir la URL de redirección
     const redirectUrl = `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`;
   
-    // Redirigir al frontend
     return res.redirect(redirectUrl);
   }
   
-
   @Post('generate-reset-token')
   async generateResetPassword(
     @Body('email') email: string,
