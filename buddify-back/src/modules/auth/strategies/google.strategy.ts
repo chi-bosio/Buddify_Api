@@ -22,29 +22,26 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-
-    console.log('Google Profile:', profile);////////
+    console.log('Google Profile:', profile);
 
     const date: Date = new Date("1990-01-01");
 
     const googleUser: CreateUserDto = {
-      email: profile.emails[0].value, 
-      name: profile.name.givenName,   
-      lastname: profile.name.familyName, 
-      username: profile.emails[0].value.split('@')[0],  
-      birthdate: date,  ///////// CAMBIAR STRING
-      city: "",      
-      country: "",   
-      dni: "",        
-      password: "",  
+        email: profile.emails[0].value,
+        name: profile.name.givenName,
+        lastname: profile.name.familyName,
+        username: profile.emails[0].value.split('@')[0],
+        birthdate: date,
+        city: "",
+        country: "",
+        dni: "",
+        password: "",
     };
 
     const user = await this.authService.validateGoogleUser(googleUser);
 
-  if (user.profileComplete) {
+    // Simplemente devuelve al usuario con el estado de perfil
     done(null, user);
-  } else {
-    done(null, { ...user, redirectTo: '/completeprofile' });
-  }
 }
+
 }

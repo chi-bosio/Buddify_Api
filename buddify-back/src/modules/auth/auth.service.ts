@@ -71,8 +71,6 @@ export class AuthService {
  
     const existingUser = await this.usersRepository.findOne({ where: { email: googleUser.email } });
 
-    console.log("Usuario encontrado:", existingUser ? "Sí" : "No");
-
     if (existingUser) {
 
       const isComplete = Boolean(existingUser.birthdate && existingUser.city && existingUser.country && existingUser.dni);
@@ -105,7 +103,7 @@ export class AuthService {
 }
   
   async updateUserProfile(userId: string, completeUserDto: CompleteProfileDto) {
-    console.log("USERRRR:", userId)
+
     const user = await this.usersRepository.findOne({ where: { id: userId } });
   
     if (!user) {
