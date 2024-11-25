@@ -131,6 +131,7 @@ export class AuthService {
       const decoded = this.jwtService.verify(token);
       return decoded.email;
     } catch (error) {
+      console.log(error)
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }
