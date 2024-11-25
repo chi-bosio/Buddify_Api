@@ -8,6 +8,7 @@ import { Category } from "../categories/category.entity";
 import { Users } from "../users/users.entity";
 import { EntityManager } from "typeorm";
 import { ActivityStatus } from "./enums/ActivityStatus.enum";
+import moment from "moment";
 
 @Injectable()
 export class ActivityRepository {
@@ -21,6 +22,10 @@ export class ActivityRepository {
 ) {}
 
 async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
+  const hours = Number(createActivityDto.time.split(":")[0]);
+    const minutes = Number(createActivityDto.time.split(":")[1]);
+    const actDate = new Date(createActivityDto.date);
+    const formatDate  = moment(actDate).set({ hour: hours, minute: minutes });
   const userExist= await this.userRepository.findOne({where:{id:createActivityDto.creatorId}});
   if(!userExist) {
     throw new BadRequestException('Usuario inexistente');
@@ -33,7 +38,7 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
     name: createActivityDto.name,
     description: createActivityDto.description,
     image: createActivityDto.image,
-    date: new Date(createActivityDto.date), 
+    date: formatDate, 
     time: createActivityDto.time,
     place: createActivityDto.place,
     latitude: createActivityDto.latitude,
