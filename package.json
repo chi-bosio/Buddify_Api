@@ -1,5 +1,5 @@
 {
-  "name": "buddify-back",
+  "name": "buddify_api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -11,7 +11,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node -r tsconfig-paths/register dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
