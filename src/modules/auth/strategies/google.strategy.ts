@@ -4,7 +4,7 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import googleOathConfig from '../config/google-oath.config';
 import { ConfigType } from '@nestjs/config';
 import { AuthService } from '../auth.service';
-import { CreateUserDto } from 'src/modules/users/dtos/CreateUser.dto';
+import { CreateUserDto } from '../../users/dtos/create-user.dto';
 
 @Injectable()
 export default class GoogleStrategy extends PassportStrategy(Strategy) {

@@ -1,4 +1,8 @@
 {
+  "engines": {
+  "node": ">=18.x",
+  "npm": ">=8.x"
+},
   "name": "buddify_api",
   "version": "0.0.1",
   "description": "",
