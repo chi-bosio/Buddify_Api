@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { Users } from '../users/users.entity';
 import { Category } from '../categories/category.entity';
-import { ActivityStatus } from './enums/ActivityStatus.enum';
+import { ActivityStatus } from './enums/activity-status.enum';
 
 @Entity({
   name: "activities",

@@ -1,6 +1,6 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { MailOptions } from './interfaces/mail-options.interface';
-import { sendMail } from 'src/utils/mailer';
+import { sendMail } from '../../utils/mailer';
 import { AuthService } from '../auth/auth.service';
 
 @Injectable()
