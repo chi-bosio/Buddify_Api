@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { loggerGblobal } from './middleware/logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: './.env.local' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,7 +32,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`Server listening on http://localhost:${port}`);
+  console.log(`Server listening on ${process.env.URL_BACK}`);
 }
 
 bootstrap();
