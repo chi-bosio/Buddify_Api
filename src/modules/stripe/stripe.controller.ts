@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { Controller, Post, Body } from '@nestjs/common';
-=======
 import {
   Controller,
   Post,
@@ -8,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
->>>>>>> ea0230e5583beb3c36acd510af79be9213fb0345
 import { StripeService } from './stripe.service';
 
 @Controller('stripe')
@@ -17,15 +13,6 @@ export class StripeController {
 
   @Post('create-payment-intent')
   async createPaymentIntent(@Body() body: any) {
-<<<<<<< HEAD
-    console.log('Body recibido:', body); // Log para ver lo que llega
-
-    const { planId, planName, planPrice, currency, userId, userName } = body;
-
-    if (!planId || !planName || !planPrice || !currency) {
-      throw new Error(
-        'Faltan parámetros necesarios para crear el PaymentIntent',
-=======
     const {
       planId,
       planName,
@@ -64,30 +51,11 @@ export class StripeController {
       throw new HttpException(
         'Moneda no soportada, solo se acepta USD',
         HttpStatus.BAD_REQUEST,
->>>>>>> ea0230e5583beb3c36acd510af79be9213fb0345
       );
     }
 
     const amount = Math.round(planPrice * 100);
 
-<<<<<<< HEAD
-    const paymentIntent = await this.stripeService.createPaymentIntent(
-      amount,
-      currency,
-      userId,
-      userName,
-      planId,
-      planName,
-    );
-
-    if (!paymentIntent.clientSecret) {
-      throw new Error(
-        'No se ha generado el clientSecret para el PaymentIntent',
-      );
-    }
-
-    return { clientSecret: paymentIntent.clientSecret };
-=======
     try {
       const paymentIntent = await this.stripeService.createPaymentIntent(
         amount,
@@ -115,6 +83,5 @@ export class StripeController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
->>>>>>> ea0230e5583beb3c36acd510af79be9213fb0345
   }
 }
