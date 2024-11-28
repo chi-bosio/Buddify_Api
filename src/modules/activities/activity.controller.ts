@@ -4,7 +4,6 @@ import { ActivityService } from "./activity.service";
 import { SearchActivitiesDto } from "./dtos/search-activities.dto";
 
 @Controller('activities')
-
 export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
@@ -19,7 +18,9 @@ export class ActivityController {
   }
 
   @Post()
-  async create(@Body() createActivityDto: CreateActivityDto): Promise<{message:string}> {
+  async create(
+    @Body() createActivityDto: CreateActivityDto,
+  ): Promise<{ message: string }> {
     return this.activityService.create(createActivityDto);
   }
 
@@ -38,5 +39,8 @@ export class ActivityController {
   ) {
     return this.activityService.cancellActivity(activityId, userId);
   }
-
+  @Get('count-created')
+  async getUserCreatedActivitiesCount(@Query('userId') userId: string) {
+    return this.activityService.getUserCreatedActivitiesCount(userId);
+  }
 }
