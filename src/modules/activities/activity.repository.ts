@@ -1,13 +1,19 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Activity } from "./activity.entity";
-import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { In, LessThan, MoreThan, Repository } from "typeorm";
-import { Category } from "../categories/category.entity";
-import { Users } from "../users/users.entity";
-import { EntityManager } from "typeorm";
-import { CreateActivityDto } from "./dtos/create-activity.dto";
-import { SearchActivitiesDto } from "./dtos/search-activities.dto";
-import { ActivityStatus } from "./enums/activity-status.enum";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Activity } from './activity.entity';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { In, LessThan, MoreThan, Repository } from 'typeorm';
+import { Category } from '../categories/category.entity';
+import { Users } from '../users/users.entity';
+import { EntityManager } from 'typeorm';
+import { CreateActivityDto } from './dtos/create-activity.dto';
+import { SearchActivitiesDto } from './dtos/search-activities.dto';
+import { ActivityStatus } from './enums/activity-status.enum';
+import * as moment from 'moment';
+import { MailService } from 'modules/mail/mail.service';
 
 @Injectable()
 export class ActivityRepository {
@@ -19,42 +25,63 @@ export class ActivityRepository {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectEntityManager() private readonly manager: EntityManager,
+    private readonly mailService: MailService,
   ) {}
 
-async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
-  const userExist= await this.userRepository.findOne({where:{id:createActivityDto.creatorId}});
-  if(!userExist) {
-    throw new BadRequestException('Usuario inexistente');
-  }
-  const categoryExist= await this.categoryRepository.findOne({where: {id:createActivityDto.categoryId}});
-  if(!categoryExist) {
-    throw new BadRequestException('Categoria inexistente');
-  }
-  const { count } = await this.getUserCreatedActivitiesCount(
-    createActivityDto.creatorId,
-  );
+  async create(
+    createActivityDto: CreateActivityDto,
+  ): Promise<{ message: string }> {
+    const userExist = await this.userRepository.findOne({
+      where: { id: createActivityDto.creatorId },
+    });
+    if (!userExist) {
+      throw new BadRequestException('Usuario inexistente');
+    }
 
-  if (!userExist.isPremium && count >= 5) {
-    throw new BadRequestException(
-      'Has alcanzado el límite de actividades creadas este mes',
+    const categoryExist = await this.categoryRepository.findOne({
+      where: { id: createActivityDto.categoryId },
+    });
+    if (!categoryExist) {
+      throw new BadRequestException('Categoria inexistente');
+    }
+
+    const { count } = await this.getUserCreatedActivitiesCount(
+      createActivityDto.creatorId,
     );
+    if (!userExist.isPremium && count >= 5) {
+      throw new BadRequestException(
+        'Has alcanzado el límite de actividades creadas este mes',
+      );
+    }
+
+    const newActivity = {
+      name: createActivityDto.name,
+      description: createActivityDto.description,
+      image: createActivityDto.image,
+      date: new Date(createActivityDto.date),
+      time: createActivityDto.time,
+      place: createActivityDto.place,
+      latitude: createActivityDto.latitude,
+      longitude: createActivityDto.longitude,
+      creator: userExist,
+      category: categoryExist,
+      participants: [],
+    };
+
+    await this.activityRepository.save(newActivity);
+    await this.mailService.sendActivityCreatedEmail(
+      userExist.email,
+      userExist.name,
+      {
+        name: createActivityDto.name,
+        date: new Date(createActivityDto.date),
+        time: createActivityDto.time,
+        place: createActivityDto.place,
+      },
+    );
+
+    return { message: 'Actividad creada con exito' };
   }
-  const newActivity = {
-    name: createActivityDto.name,
-    description: createActivityDto.description,
-    image: createActivityDto.image,
-    date: new Date(createActivityDto.date), 
-    time: createActivityDto.time,
-    place: createActivityDto.place,
-    latitude: createActivityDto.latitude,
-    longitude: createActivityDto.longitude,
-    creator: userExist,
-    category:categoryExist,
-    participants: []
-  };
-  await this.activityRepository.save(newActivity);
-  return {message: 'Actividad creada con exito'};
-}
 
   async searchActivities(
     query: SearchActivitiesDto,
@@ -200,6 +227,13 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       await queryRunner.manager.save(user);
       await queryRunner.manager.save(activity);
 
+      await this.mailService.sendJoinedActivityEmail(user.email, user.name, {
+        name: activity.name,
+        date: activity.date,
+        time: activity.time,
+        place: activity.place,
+      });
+
       await queryRunner.commitTransaction();
 
       return {
@@ -249,6 +283,7 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
         activity.participants = activity.participants.filter(
           (p) => p.id === user.id,
         );
+
         if (
           activity.status === ActivityStatus.CONFIRMED &&
           activity.participants.length < 5
@@ -256,16 +291,56 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
           //si el nro de parcipante baja la actividad pasa a pendiente
           activity.status = ActivityStatus.PENDING;
         }
+
         await queryRunner.manager.save(activity);
         await queryRunner.manager.save(user);
+
+        await this.mailService.sendCanceledParticipationEmail(
+          user.email,
+          user.name,
+          {
+            name: activity.name,
+            date: activity.date,
+            time: activity.time,
+            place: activity.place,
+          },
+        );
+
         message = 'Ya no eres participante de la actividad!';
       } else if (activity.creator.id === user.id) {
         console.log('Creador');
         if (activity.status === ActivityStatus.CANCELLED)
-          throw new BadRequestException('La actividad ya a sido cancelada');
+          throw new BadRequestException('La actividad ya ha sido cancelada');
+
         activity.status = ActivityStatus.CANCELLED;
         await queryRunner.manager.save(activity);
-        message = 'Actividad cancelada con exito!';
+
+        await this.mailService.sendActivityCanceledByCreatorEmail(
+          user.email,
+          user.name,
+          {
+            name: activity.name,
+            date: activity.date,
+            time: activity.time,
+            place: activity.place,
+          },
+        );
+
+        if (
+          activity.participants.map((participant) =>
+            this.mailService.sendActivityCanceledToParticipantsEmail(
+              participant.email,
+              participant.name,
+              {
+                name: activity.name,
+                date: activity.date,
+                time: activity.time,
+                place: activity.place,
+              },
+            ),
+          )
+        )
+          message = 'Actividad cancelada con exito!';
       } else {
         console.log('Burro');
         throw new BadRequestException(
@@ -311,7 +386,7 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       joined: joinedActivities,
     };
   }
-  
+
   async getUserCreatedActivitiesCount(
     userId: string,
   ): Promise<{ count: number }> {
@@ -345,5 +420,4 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
 
     return { count };
   }
-
 }

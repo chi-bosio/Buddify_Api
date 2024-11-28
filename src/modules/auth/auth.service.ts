@@ -10,12 +10,10 @@ import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users.entity';
 import { GoogleUserDto } from '../users/dtos/google-user.dto';
 import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
-import { UsersRepository } from '../users/users.repository';
 import { ChangePswDto } from '../users/dtos/change-psw.dto';
 
 @Injectable()
@@ -68,55 +66,61 @@ export class AuthService {
   }
 
   async validateGoogleUser(googleUser: GoogleUserDto) {
- 
-    const existingUser = await this.usersRepository.findOne({ where: { email: googleUser.email } });
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: googleUser.email },
+    });
 
     if (existingUser) {
+      const isComplete = Boolean(
+        existingUser.birthdate &&
+          existingUser.city &&
+          existingUser.country &&
+          existingUser.dni,
+      );
 
-      const isComplete = Boolean(existingUser.birthdate && existingUser.city && existingUser.country && existingUser.dni);
-      
-      const userWithProfileComplete = { ...existingUser, profileComplete: isComplete };
+      const userWithProfileComplete = {
+        ...existingUser,
+        profileComplete: isComplete,
+      };
 
       return userWithProfileComplete;
-
     } else {
       const newUser = this.usersRepository.create({
         email: googleUser.email,
         name: googleUser.name,
         lastname: googleUser.lastname,
         username: googleUser.username,
-        birthdate: "",
-        city: "",         
-        country: "",      
-        dni: "",          
-        password: "",     
-        isPremium: false, 
-        isAdmin: false,   
-        credential: null, 
-        activities: []    
+        birthdate: '',
+        city: '',
+        country: '',
+        dni: '',
+        password: '',
+        isPremium: false,
+        isAdmin: false,
+        credential: null,
+        activities: [],
       } as DeepPartial<Users>);
 
       await this.usersRepository.save(newUser);
 
       return { ...newUser, profileComplete: false };
     }
-}
-  
-  async updateUserProfile(userId: string, completeUserDto: CompleteProfileDto) {
+  }
 
+  async updateUserProfile(userId: string, completeUserDto: CompleteProfileDto) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
-  
+
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
-  
+
     user.birthdate = completeUserDto.birthdate || user.birthdate;
     user.city = completeUserDto.city || user.city;
     user.country = completeUserDto.country || user.country;
     user.dni = completeUserDto.dni || user.dni;
-  
+
     await this.usersRepository.save(user);
-  
+
     return user;
   }
 
@@ -131,7 +135,7 @@ export class AuthService {
       const decoded = this.jwtService.verify(token);
       return decoded.email;
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }
