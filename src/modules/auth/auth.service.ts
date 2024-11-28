@@ -10,12 +10,10 @@ import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users.entity';
 import { GoogleUserDto } from '../users/dtos/google-user.dto';
 import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
-import { UsersRepository } from '../users/users.repository';
 import { ChangePswDto } from '../users/dtos/change-psw.dto';
 
 @Injectable()

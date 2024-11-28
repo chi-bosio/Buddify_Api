@@ -60,4 +60,49 @@ export class StripeService {
 
     return { clientSecret: paymentIntent.client_secret };
   }
+
+  async updatePaymentStatus(paymentId: string) {
+    // Buscar el pago en tu base de datos
+    const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
+
+    if (!payment) {
+      throw new Error('Pago no encontrado');
+    }
+
+    // Llamada a la API de Stripe para obtener el estado actual del PaymentIntent
+    const response = await fetch(`https://api.stripe.com/v1/payment_intents/${payment.stripePaymentIntentId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener el PaymentIntent desde Stripe: ${response.statusText}`);
+    }
+
+    const paymentIntent = await response.json();
+
+    // Verifica el estado del PaymentIntent y actualiza el estado del pago en tu base de datos
+    switch (paymentIntent.status) {
+      case 'succeeded':
+        payment.status = 'completed'; // O 'success', según tu lógica
+        break;
+      case 'pending':
+        payment.status = 'pending';
+        break;
+      case 'failed':
+        payment.status = 'failed';
+        break;
+      case 'canceled':
+        payment.status = 'canceled';
+        break;
+      default:
+        payment.status = 'unknown'; // Si no coincide con ningún estado, marca como desconocido
+        break;
+    }
+
+    // Guardar los cambios en la base de datos
+    await this.paymentRepository.save(payment);
+  }
 }
