@@ -1,7 +1,7 @@
 import * as nodemailer from 'nodemailer';
 import { SendMailOptions, Transporter } from 'nodemailer';
 import * as dotenv from 'dotenv';
-import { MailOptions } from 'src/modules/mail/interfaces/mail-options.interface';
+import { MailOptions } from '../modules/mail/interfaces/mail-options.interface';
 
 dotenv.config({ path: './.env.local' });
 

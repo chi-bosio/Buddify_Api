@@ -5,18 +5,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { LoginUserDto } from '../users/dtos/LoginUser.dto';
+import { LoginUserDto } from '../users/dtos/login-user.dto';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../users/dtos/CreateUser.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { Users } from '../users/users.entity';
-import { GoogleUserDto } from '../users/dtos/GoogleUserDto';
-import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
+import { GoogleUserDto } from '../users/dtos/google-user.dto';
+import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
 import { UsersRepository } from '../users/users.repository';
-import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
+import { ChangePswDto } from '../users/dtos/change-psw.dto';
 
 @Injectable()
 export class AuthService {
@@ -131,6 +131,7 @@ export class AuthService {
       const decoded = this.jwtService.verify(token);
       return decoded.email;
     } catch (error) {
+      console.log(error)
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }

@@ -14,18 +14,18 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { CreateUserDto } from '../users/dtos/CreateUser.dto';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
-import { LoginUserDto } from '../users/dtos/LoginUser.dto';
+import { LoginUserDto } from '../users/dtos/login-user.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import * as dotenv from 'dotenv';
 import { MailService } from '../mail/mail.service';
-import { ChangePswDto } from '../users/dtos/ChangePsw.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { ChangePswDto } from '../users/dtos/change-psw.dto';
+import { AuthGuard } from '../../guards/auth.guard';
 dotenv.config({ path: './.env.local' });
 import { JwtService } from '@nestjs/jwt';
-import { CompleteProfileDto } from '../Users/dtos/CompleteProfile.dto';
+import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
 
 
 @Controller('auth')

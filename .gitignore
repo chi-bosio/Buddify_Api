@@ -1,7 +1,9 @@
 # compiled output
 /dist
-/node_modules
+/buddify_api
 /build
+/node_modules
+
 
 # Logs
 logs

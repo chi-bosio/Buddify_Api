@@ -1,7 +1,9 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { MailOptions } from './interfaces/mail-options.interface';
-import { sendMail } from 'src/utils/mailer';
+import { sendMail } from '../../utils/mailer';
 import { AuthService } from '../auth/auth.service';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: './.env.local' });
 
 @Injectable()
 export class MailService {
@@ -29,7 +31,7 @@ export class MailService {
 
   async sendPasswordResetEmail(emailUser: string, username: string) {
     const resetToken = await this.authService.generateResetToken(emailUser);
-    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.URL_FRONT}/reset-password?tokenreset=${resetToken}`;
 
     const mailOptions: MailOptions = {
       to: emailUser,
