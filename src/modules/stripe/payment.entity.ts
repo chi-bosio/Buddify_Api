@@ -31,4 +31,10 @@ export class Payment {
 
   @Column({ default: 'pending' })
   status: string;
+
+  @Column({ nullable: true })
+  cardholderName: string;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  paymentDate: Date;
 }
