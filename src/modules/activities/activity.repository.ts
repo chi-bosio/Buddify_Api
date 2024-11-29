@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Activity } from './activity.entity';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, MoreThan, Repository } from 'typeorm';
+import { In, Repository, Between, Not } from 'typeorm';
 import { Category } from '../categories/category.entity';
 import { Users } from '../users/users.entity';
 import { EntityManager } from 'typeorm';
@@ -37,21 +37,24 @@ export class ActivityRepository {
     if (!userExist) {
       throw new BadRequestException('Usuario inexistente');
     }
+    ////////////////////////////////////////////////////////////
+
+    const { count } = await this.getUserCreatedActivitiesCount(
+      createActivityDto.creatorId,
+    );
+
+    if (!userExist.isPremium && count >= 3) {
+      throw new BadRequestException(
+        'Has alcanzado el límite de actividades creadas este mes',
+      );
+    }
+    ///////////////////////////////////////////////////////////
 
     const categoryExist = await this.categoryRepository.findOne({
       where: { id: createActivityDto.categoryId },
     });
     if (!categoryExist) {
       throw new BadRequestException('Categoria inexistente');
-    }
-
-    const { count } = await this.getUserCreatedActivitiesCount(
-      createActivityDto.creatorId,
-    );
-    if (!userExist.isPremium && count >= 5) {
-      throw new BadRequestException(
-        'Has alcanzado el límite de actividades creadas este mes',
-      );
     }
 
     const newActivity = {
@@ -307,7 +310,6 @@ export class ActivityRepository {
 
         message = 'Ya no eres participante de la actividad!';
       } else if (activity.creator.id === user.id) {
-        
         if (activity.status === ActivityStatus.CANCELLED)
           throw new BadRequestException('La actividad ya ha sido cancelada');
 
@@ -388,7 +390,6 @@ export class ActivityRepository {
   async getUserCreatedActivitiesCount(
     userId: string,
   ): Promise<{ count: number }> {
-    // Verificar existencia del usuario
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -397,24 +398,28 @@ export class ActivityRepository {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    // Si el usuario es premium, devolvemos el conteo sin restricciones
+    let count = 0;
+
     if (user.isPremium) {
-      const count = await this.activityRepository.count({
-        where: { creator: { id: userId } },
+      // Si el usuario es premium, no hay límite
+      count = await this.activityRepository.count({
+        where: {
+          creator: { id: userId },
+          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
+        },
       });
-      return { count };
+    } else {
+      const startOfMonth = moment().startOf('month').toDate();
+      const endOfMonth = moment().endOf('month').toDate();
+
+      // Filtramos las actividades creadas en el mes actual
+      count = await this.activityRepository.count({
+        where: {
+          creator: { id: userId },
+          date: Between(startOfMonth, endOfMonth), // Usamos Between para el rango de fechas
+        },
+      });
     }
-
-    // Validar actividades del mes actual para usuarios no premium
-    const startOfMonth = moment().startOf('month').toDate();
-    const endOfMonth = moment().endOf('month').toDate();
-
-    const count = await this.activityRepository.count({
-      where: {
-        creator: { id: userId },
-        date: MoreThan(startOfMonth) && LessThan(endOfMonth), // Actividades creadas dentro del mes actual
-      },
-    });
 
     return { count };
   }
