@@ -171,6 +171,7 @@ export class ActivityRepository {
         name: activity.creator?.name || '',
         lastname: activity.creator?.lastname || '',
         avatar: activity.creator?.avatar || '',
+        isPremium: activity.creator?.isPremium || '',
       },
       category: {
         id: activity.category?.id || '',
@@ -260,12 +261,12 @@ export class ActivityRepository {
     await queryRunner.startTransaction();
     try {
       const activity = await queryRunner.manager.findOne(Activity, {
-        where: { id: activityId },
+        where: { id: activityId, status: Not(In([ActivityStatus.CANCELLED,ActivityStatus.SUCCESS]))},
         relations: ['creator', 'participants'],
       });
 
       if (!activity) {
-        throw new NotFoundException('Actividad inexistente');
+        throw new NotFoundException('Actividad inexistente ,o ya cancelada ,o ya finalizada');
       }
 
       const user = await queryRunner.manager.findOne(Users, {
@@ -381,6 +382,22 @@ export class ActivityRepository {
       relations: ['creator', 'category', 'participants'],
     });
     const joinedActivities = user.participatedActivities;
+
+    const activityStatusOrder: { [key in ActivityStatus]: number } = {
+      [ActivityStatus.CONFIRMED]: 0,  
+      [ActivityStatus.PENDING]: 1,    
+      [ActivityStatus.SUCCESS]: 2,    
+      [ActivityStatus.CANCELLED]: 3,  
+    };
+
+    createdActivities.sort((a, b) => {
+      return activityStatusOrder[a.status] - activityStatusOrder[b.status];
+    });
+  
+    joinedActivities.sort((a, b) => {
+      return activityStatusOrder[a.status] - activityStatusOrder[b.status];
+    });
+
     return {
       created: createdActivities,
       joined: joinedActivities,
@@ -416,6 +433,7 @@ export class ActivityRepository {
       count = await this.activityRepository.count({
         where: {
           creator: { id: userId },
+          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
           date: Between(startOfMonth, endOfMonth), // Usamos Between para el rango de fechas
         },
       });
