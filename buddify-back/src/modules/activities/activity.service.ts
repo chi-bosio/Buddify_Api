@@ -38,8 +38,6 @@ export class ActivityService {
   }
   constructor(private readonly activityRepository: ActivityRepository) {}
 
-  // Servicio -> ActivityService
-
   async getUserCreatedActivitiesCount(
     userId: string,
   ): Promise<{ count: number }> {
