@@ -1,8 +1,8 @@
 {
   "engines": {
-  "node": ">=18.x",
-  "npm": ">=8.x"
-},
+    "node": ">=18.x",
+    "npm": ">=8.x"
+  },
   "name": "buddify_api",
   "version": "0.0.1",
   "description": "",
@@ -30,6 +30,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^8.0.5",
     "@nestjs/typeorm": "^10.0.2",
     "bcrypt": "^5.1.1",
@@ -52,6 +53,7 @@
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
     "@types/bcrypt": "^5.0.2",
+    "@types/cron": "^2.4.3",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
     "@types/jsonwebtoken": "^9.0.7",

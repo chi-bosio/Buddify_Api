@@ -12,6 +12,57 @@ export class MailService {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}
+  
+  async sendWanringEndPlan(emailUser: string, username: string) {
+    const mailOptions: MailOptions = {
+      to: emailUser,
+      subject: '¡Tu plan premium está por terminar!',
+      html: `
+        <h1>Hola, ${username} 👋</h1>
+        <p>Esperamos que hayas disfrutado al máximo de los beneficios de tu plan premium en <strong>Buddify</strong>.</p>
+        <p>Queremos informarte que tu plan premium está a solo <strong>7 días</strong> de expirar.</p>
+        <p>Para asegurarte de que sigues disfrutando de todas las ventajas, renueva tu plan ahora:</p>
+        <p style="text-align: center; margin: 20px 0;">
+          <a 
+            href="${process.env.URL_FRONT}/renew" 
+            style="background-color: #ff5252; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
+          >
+            Renovar mi plan
+          </a>
+        </p>
+        <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ti. 💖</p>
+        <p>Gracias por ser parte de <strong>Buddify</strong>. ¡Nos encanta tenerte con nosotros!</p>
+        <p>Con cariño,</p>
+        <p><strong>El equipo de Buddify</strong></p>
+      `,
+    };
+    await sendMail(mailOptions);
+  }
+
+  async sendExpiredPlanNotification(emailUser: string, username: string) {
+    const mailOptions: MailOptions = {
+      to: emailUser,
+      subject: '¡Tu plan premium ha expirado!',
+      html: `
+        <h1>Hola, ${username} 👋</h1>
+        <p>Tu plan premium en <strong>Buddify</strong> ha expirado. Lamentamos que ya no estés disfrutando de los beneficios exclusivos de nuestro servicio.</p>
+        <p>Para continuar accediendo a todas las ventajas que ofrece nuestro plan premium, puedes renovarlo en cualquier momento.</p>
+        <p style="text-align: center; margin: 20px 0;">
+          <a 
+            href="${process.env.URL_FRONT}/plans" 
+            style="background-color: #ff5252; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
+          >
+            Ver planes y renovar
+          </a>
+        </p>
+        <p>Si tienes alguna duda o necesitas más información, no dudes en contactarnos. Estamos aquí para ayudarte. 💖</p>
+        <p>Gracias por ser parte de <strong>Buddify</strong>. ¡Esperamos verte pronto de nuevo!</p>
+        <p>Con cariño,</p>
+        <p><strong>El equipo de Buddify</strong></p>
+      `,
+    };
+    await sendMail(mailOptions);
+  }
 
   async sendWelcomeEmail(emailUser: string, username: string) {
     const mailOptions: MailOptions = {

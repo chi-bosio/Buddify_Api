@@ -134,11 +134,6 @@ export class AuthController {
     @Req() req,
     @Res() res,
   ) {
-    console.log(
-      'Solicitud recibida en /auth/completeprofile:',
-      completeUserDto,
-    );
-    console.log('Request user:', req.user);
 
     const userId = req.user.sub;
 

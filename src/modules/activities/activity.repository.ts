@@ -276,7 +276,6 @@ export class ActivityRepository {
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
       if (isParticipant) {
-        console.log('Participante');
         user.participatedActivities = user.participatedActivities.filter(
           (act) => act.id !== activity.id,
         );
@@ -308,7 +307,7 @@ export class ActivityRepository {
 
         message = 'Ya no eres participante de la actividad!';
       } else if (activity.creator.id === user.id) {
-        console.log('Creador');
+        
         if (activity.status === ActivityStatus.CANCELLED)
           throw new BadRequestException('La actividad ya ha sido cancelada');
 
@@ -342,7 +341,6 @@ export class ActivityRepository {
         )
           message = 'Actividad cancelada con exito!';
       } else {
-        console.log('Burro');
         throw new BadRequestException(
           'No participas de esta actividad o no eres el creador',
         );
