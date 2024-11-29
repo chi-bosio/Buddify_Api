@@ -36,11 +36,24 @@ export class StripeService {
         cardholderName: cardholderName.toString(),
         paymentDate: paymentDate.toString(),
       };
-
+      //expira el plan anterior si es que esta activo
+      const existingPayment = await this.paymentRepository.findOne({
+        where: {
+          status: 'succeeded', 
+          userId: userId,
+          planId: planId,
+        },
+      });
+  
+      if (existingPayment) {
+        existingPayment.status = 'expired';
+        await this.paymentRepository.save(existingPayment);
+      }
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: amount,
         currency: currency,
         metadata: metadata,
+        automatic_payment_methods: { enabled: true },
       });
 
       const payment = this.paymentRepository.create({
@@ -52,7 +65,7 @@ export class StripeService {
         currency,
         stripePaymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
-        status: 'pending',
+        status: paymentIntent.status,
         cardholderName,
         paymentDate: new Date(paymentDate),
       });
@@ -67,14 +80,12 @@ export class StripeService {
   }
 
   async updatePaymentStatus(paymentId: string) {
-    // Buscar el pago en tu base de datos
     const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
 
     if (!payment) {
       throw new Error('Pago no encontrado');
     }
 
-    // Llamada a la API de Stripe para obtener el estado actual del PaymentIntent
     const response = await fetch(`https://api.stripe.com/v1/payment_intents/${payment.stripePaymentIntentId}`, {
       method: 'GET',
       headers: {
@@ -87,11 +98,9 @@ export class StripeService {
     }
 
     const paymentIntent = await response.json();
-
-    // Verifica el estado del PaymentIntent y actualiza el estado del pago en tu base de datos
     switch (paymentIntent.status) {
       case 'succeeded':
-        payment.status = 'completed'; // O 'success', según tu lógica
+        payment.status = 'succeeded';
         break;
       case 'pending':
         payment.status = 'pending';
@@ -103,11 +112,10 @@ export class StripeService {
         payment.status = 'canceled';
         break;
       default:
-        payment.status = 'unknown'; // Si no coincide con ningún estado, marca como desconocido
+        payment.status = 'unknown'; 
         break;
     }
 
-    // Guardar los cambios en la base de datos
     await this.paymentRepository.save(payment);
   }
 }

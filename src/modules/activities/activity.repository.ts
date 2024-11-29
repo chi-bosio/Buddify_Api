@@ -8,6 +8,7 @@ import { EntityManager } from "typeorm";
 import { CreateActivityDto } from "./dtos/create-activity.dto";
 import { SearchActivitiesDto } from "./dtos/search-activities.dto";
 import { ActivityStatus } from "./enums/activity-status.enum";
+import * as moment from 'moment';
 
 @Injectable()
 export class ActivityRepository {
@@ -242,7 +243,6 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
       if (isParticipant) {
-        console.log('Participante');
         user.participatedActivities = user.participatedActivities.filter(
           (act) => act.id !== activity.id,
         );
@@ -260,14 +260,13 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
         await queryRunner.manager.save(user);
         message = 'Ya no eres participante de la actividad!';
       } else if (activity.creator.id === user.id) {
-        console.log('Creador');
+        
         if (activity.status === ActivityStatus.CANCELLED)
           throw new BadRequestException('La actividad ya a sido cancelada');
         activity.status = ActivityStatus.CANCELLED;
         await queryRunner.manager.save(activity);
         message = 'Actividad cancelada con exito!';
       } else {
-        console.log('Burro');
         throw new BadRequestException(
           'No participas de esta actividad o no eres el creador',
         );

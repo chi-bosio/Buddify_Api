@@ -7,8 +7,8 @@ import { MailService } from 'modules/mail/mail.service';
 import { Payment } from 'modules/stripe/payment.entity';
 import { StripeService } from 'modules/stripe/stripe.service';
 import { Users } from 'modules/users/users.entity';
-import moment from 'moment';
-import { LessThan, Repository } from 'typeorm';
+import * as moment from 'moment';
+import { In, LessThan, Not, Repository } from 'typeorm';
 
 @Injectable()
 export class TasksService {
@@ -45,45 +45,45 @@ export class TasksService {
 
   @Cron('0 0 * * *') 
   async handlePremiumPlans() {
-    const now = moment(); 
+    const now = moment().startOf('day');
 
     const payments = await this.paymentRepository.find({
-      where: { status: 'active' },
+      where: {  status: 'succeeded', },
     });
-
     for (const payment of payments) {
-      const expirationDate = moment(payment.startDate).add(30, 'days');
+      const expirationDate = moment(payment.paymentDate).startOf('day').add(30, 'days');
       const daysToExpire = expirationDate.diff(now, 'days');
-
-      
+      console.log(daysToExpire);
       if (daysToExpire === 7) {
         const user = await this.userRepository.findOne({ where: { id: payment.userId } });
         if (user) {
-          await this.mailService.sendEndPlan(user.email, user.name);
+          await this.mailService.sendWanringEndPlan(user.email, user.name);
+          await this.paymentRepository.save(payment);
         }
-      }
-
-      if (daysToExpire < 0) {
+      } else if (daysToExpire < 0) {
         const user = await this.userRepository.findOne({ where: { id: payment.userId } });
         if (user && user.isPremium) {
-          user.isPremium = false; 
-          await this.userRepository.save(user); 
+          user.isPremium = false;
+          await this.userRepository.save(user);
         }
         payment.status = 'expired';
         await this.paymentRepository.save(payment);
+        await this.mailService.sendExpiredPlanNotification(user.email, user.name);
       }
+
+      
     }
   }
 
-  @Cron('0 0 * * *') // Ejecución diaria a medianoche
-async checkPaymentsStatus() {
-  const payments = await this.paymentRepository.find({
-    where: { status: 'pending' },
-  });
+  @Cron('0 0 * * *') 
+  async checkPaymentsStatus() {
+    const payments = await this.paymentRepository.find({
+      where: {  status: Not(In(['succeeded', 'expired'])),},
+    });
 
-  for (const payment of payments) {
-    await this.stripeService.updatePaymentStatus(payment.id);
+    for (const payment of payments) {
+      await this.stripeService.updatePaymentStatus(payment.id);
+    }
   }
-}
 
 }
