@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
-import { CreateActivityDto } from "./dtos/create-activity.dto";
-import { ActivityRepository } from "./activity.repository";
-import { SearchActivitiesDto } from "./dtos/search-activities.dto";
-import { Activity } from "./activity.entity";
+import { Injectable } from '@nestjs/common';
+import { CreateActivityDto } from './dtos/create-activity.dto';
+import { ActivityRepository } from './activity.repository';
+import { SearchActivitiesDto } from './dtos/search-activities.dto';
+import { Activity } from './activity.entity';
 
 @Injectable()
 export class ActivityService {
@@ -37,8 +37,6 @@ export class ActivityService {
     return this.activityRepository.getUserActivities(userId);
   }
   constructor(private readonly activityRepository: ActivityRepository) {}
-
-  // Servicio -> ActivityService
 
   async getUserCreatedActivitiesCount(
     userId: string,
