@@ -401,22 +401,20 @@ export class ActivityRepository {
     let count = 0;
 
     if (user.isPremium) {
-      // Si el usuario es premium, no hay límite
       count = await this.activityRepository.count({
         where: {
           creator: { id: userId },
-          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
         },
       });
     } else {
       const startOfMonth = moment().startOf('month').toDate();
       const endOfMonth = moment().endOf('month').toDate();
 
-      // Filtramos las actividades creadas en el mes actual
       count = await this.activityRepository.count({
         where: {
           creator: { id: userId },
-          date: Between(startOfMonth, endOfMonth), // Usamos Between para el rango de fechas
+          date: Between(startOfMonth, endOfMonth),
+          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
         },
       });
     }
