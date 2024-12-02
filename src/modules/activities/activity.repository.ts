@@ -217,6 +217,28 @@ export class ActivityRepository {
           'El usuario ya es participante en esta actividad',
         );
       }
+      ////////////////////////////////////////////////////////////
+      if (!user.isPremium) {
+        const startOfMonth = moment().startOf('month').toDate(); // Fecha de inicio del mes actual
+        const endOfMonth = moment().endOf('month').toDate(); // Fecha de fin del mes actual
+
+        const activitiesThisMonth = await queryRunner.manager.count(Activity, {
+          where: {
+            participants: { id: userId }, // Filtrar actividades con el usuario como participante
+            date: Between(startOfMonth, endOfMonth), // Dentro del mes actual
+            status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])), // Excluir actividades finalizadas o canceladas
+          },
+        });
+
+        if (activitiesThisMonth >= 3) {
+          throw new BadRequestException({
+            message:
+              'Los usuarios no Premium solo pueden unirse a 3 actividades por mes', // Mensaje para el front
+            errorCode: 'LIMIT_REACHED', // Código único para identificar este error
+          });
+        }
+      }
+      ////////////////////////////////////////////////////////////
 
       user.participatedActivities.push(activity);
       activity.participants.push(user);
@@ -401,22 +423,20 @@ export class ActivityRepository {
     let count = 0;
 
     if (user.isPremium) {
-      // Si el usuario es premium, no hay límite
       count = await this.activityRepository.count({
         where: {
           creator: { id: userId },
-          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
         },
       });
     } else {
       const startOfMonth = moment().startOf('month').toDate();
       const endOfMonth = moment().endOf('month').toDate();
 
-      // Filtramos las actividades creadas en el mes actual
       count = await this.activityRepository.count({
         where: {
           creator: { id: userId },
-          date: Between(startOfMonth, endOfMonth), // Usamos Between para el rango de fechas
+          date: Between(startOfMonth, endOfMonth),
+          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
         },
       });
     }
