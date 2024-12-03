@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SendMessageDto } from './dtos/sendMessage.dto';
+import { SendMessageDto } from './dtos/send-message.dto';
 import { Message } from './message.entity';
 
 @Injectable()
