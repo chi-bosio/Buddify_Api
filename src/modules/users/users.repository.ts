@@ -107,6 +107,12 @@ export class UsersRepository {
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
+    if (user.isThirdParty) {
+      throw new UnauthorizedException(
+        'Los usuarios autenticados con terceros no pueden restablecer su contraseña.',
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     const credentials = await this.credentialsRepository.findOne({
@@ -119,6 +125,7 @@ export class UsersRepository {
     credentials.password = hashedPassword;
     await this.credentialsRepository.save(credentials);
   }
+
   async updateUser(id: string, user: Partial<Users>): Promise<Users> {
     const userExists = await this.usersRepository.findOne({ where: { id } });
     if (!userExists) {
@@ -159,7 +166,9 @@ export class UsersRepository {
     }
     user.isBanned = true;
     user.bannedAt = new Date();
-    return await this.usersRepository.save(user);
+    await this.usersRepository.save(user);
+    await this.mailService.sendBanNotification(user.email, user.name);
+    return user;
   }
 
   async unbanUser(userId: string): Promise<Users> {

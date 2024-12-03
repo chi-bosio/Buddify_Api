@@ -77,6 +77,9 @@ export class AuthService {
     });
 
     if (existingUser) {
+      existingUser.isThirdParty = true;
+      await this.usersRepository.save(existingUser);
+
       const isComplete = Boolean(
         existingUser.birthdate &&
           existingUser.city &&
@@ -103,6 +106,7 @@ export class AuthService {
         password: '',
         isPremium: false,
         isAdmin: false,
+        isThirdParty: true,
         credential: null,
         activities: [],
       } as DeepPartial<Users>);
@@ -131,6 +135,17 @@ export class AuthService {
   }
 
   async generateResetToken(email: string): Promise<string> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    if (user.isThirdParty) {
+      throw new UnauthorizedException(
+        'Los usuarios autenticados con terceros no pueden restablecer su contraseña.',
+      );
+    }
+
     const payload = { email };
     const resetToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     return resetToken;
