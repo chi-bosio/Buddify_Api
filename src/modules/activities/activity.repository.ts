@@ -8,6 +8,7 @@ import { EntityManager } from "typeorm";
 import { CreateActivityDto } from "./dtos/create-activity.dto";
 import { SearchActivitiesDto } from "./dtos/search-activities.dto";
 import { ActivityStatus } from "./enums/activity-status.enum";
+import * as moment from 'moment';
 
 @Injectable()
 export class ActivityRepository {
