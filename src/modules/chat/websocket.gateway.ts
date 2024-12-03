@@ -12,8 +12,9 @@ import {
 import { Activity } from 'modules/activities/activity.entity';
 import { UsersService } from 'modules/users/users.service';
 import { Server, Socket } from 'socket.io';
-import { Repository } from 'typeorm';
+import { Repository, Not, In } from 'typeorm';
 import { MessageService } from '../message/message.service';
+import { ActivityStatus } from 'modules/activities/enums/activity-status.enum';
 
 @WebSocketGateway({
   namespace: '/chat',
@@ -41,56 +42,63 @@ export class WebsocketGateway
     const token = client.handshake.auth.token;
 
     if (!token) {
-      client.emit('error', 'Token no proporcionado');
-      client.disconnect();
-      return;
+        client.emit('error', 'Token no proporcionado');
+        client.disconnect();
+        return;
     }
 
     try {
-      const decoded = this.jwtService.verify(token);
+        const decoded = this.jwtService.verify(token);
 
-      const user = await this.usersService.findById(decoded.sub);
-      if (!user) {
-        client.emit('error', 'Usuario no encontrado');
-        client.disconnect();
-        return;
-      }
-
-      client.data.userId = user.id;
-      client.data.username = user.name;
-      client.data.lastname = user.lastname;
-      client.data.avatar = user.avatar;
-
-      let activityId = client.handshake.query.activityId;
-
-      if (Array.isArray(activityId)) {
-        activityId = activityId[0];
-      }
-      if (typeof activityId === 'string') {
-        const activity = await this.activityRepository.findOne({
-          where: { id: activityId },
-        });
-
-        if (activity) {
-
-          client.join(`activity-${activityId}`);
-
-          const recentMessages = await this.messageService.getMessagesByActivity(activityId, 30);
-          client.emit('recentMessages', recentMessages);
-
-          client.emit('activityDetails', activity);
-        } else {
-          client.emit('error', 'Actividad no encontrada');
+        const user = await this.usersService.findById(decoded.sub);
+        if (!user) {
+            client.emit('error', 'Usuario no encontrado');
+            client.disconnect();
+            return;
         }
-      } else {
-        client.emit('error', 'ID de actividad inválido');
-      }
+
+        client.data.userId = user.id;
+        client.data.username = user.name;
+        client.data.lastname = user.lastname;
+        client.data.avatar = user.avatar;
+
+        let activityId = client.handshake.query.activityId;
+
+        if (Array.isArray(activityId)) {
+            activityId = activityId[0];
+        }
+
+        if (typeof activityId === 'string') {
+            const activity = await this.activityRepository.findOne({
+                where: {
+                    id: activityId,
+                    status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
+                },
+            });
+
+            console.log(activity)
+
+            if (activity) {
+                client.join(`activity-${activityId}`);
+
+                const recentMessages = await this.messageService.getMessagesByActivity(activityId, 30);
+                client.emit('recentMessages', recentMessages);
+
+                client.emit('activityDetails', activity);
+            } else {
+                client.emit('error', 'Actividad no encontrada o no activa');
+                client.disconnect();
+            }
+        } else {
+            client.emit('error', 'ID de actividad inválido');
+            client.disconnect();
+        }
     } catch (error) {
-      console.error('Error al verificar token:', error);
-      client.emit('error', 'Token inválido o expirado');
-      client.disconnect();
+        console.error('Error al verificar token:', error);
+        client.emit('error', 'Token inválido o expirado');
+        client.disconnect();
     }
-  }
+}
 
   handleDisconnect(client: Socket) {
   }
