@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import { Activity } from '../activities/activity.entity';
+import { Message } from 'modules/message/message.entity';
 
 @Entity()
 export class Users {
@@ -157,4 +158,7 @@ export class Users {
   isBanned: boolean;
   @Column({ nullable: true })
   bannedAt: Date;
+
+  @OneToMany(() => Message, (message) => message.sender)
+  messages: Message[];
 }

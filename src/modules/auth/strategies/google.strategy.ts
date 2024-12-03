@@ -44,7 +44,6 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
 
     const user = await this.authService.validateGoogleUser(googleUser);
 
-    // Simplemente devuelve al usuario con el estado de perfil
     done(null, user);
   }
 }
