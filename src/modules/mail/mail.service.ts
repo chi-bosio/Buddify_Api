@@ -12,7 +12,7 @@ export class MailService {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
   ) {}
-  
+
   async sendWanringEndPlan(emailUser: string, username: string) {
     const mailOptions: MailOptions = {
       to: emailUser,
@@ -276,6 +276,31 @@ export class MailService {
         <p>Te invitamos a explorar más actividades y a seguir conectando con nuestra comunidad. ¡Seguro encontrarás experiencias maravillosas! 🌟</p>
         <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos. Estamos aquí para ayudarte. 🤗</p>
         <p>Gracias por formar parte de <strong>Buddify</strong>. ¡Esperamos verte pronto en otras actividades!</p>
+        <p>Con cariño,</p>
+        <p><strong>El equipo de Buddify</strong></p>
+      `,
+    };
+
+    await sendMail(mailOptions);
+  }
+
+  async sendBanNotification(emailUser: string, username: string) {
+    const mailOptions: MailOptions = {
+      to: emailUser,
+      subject: 'Tu cuenta ha sido baneada en Buddify',
+      html: `
+        <h1>Hola, ${username} 👋</h1>
+        <p>Lamentamos informarte que tu cuenta en <strong>Buddify</strong> ha sido baneada debido a un incumplimiento de nuestras normas comunitarias.</p>
+        <p>Si crees que esto ha sido un error o si deseas más información, por favor contacta con nuestro equipo de soporte a través del siguiente enlace:</p>
+        <p style="text-align: center; margin: 20px 0;">
+          <a 
+            href="${process.env.URL_FRONT}/support" 
+            style="background-color: #ff5252; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;"
+          >
+            Contactar Soporte
+          </a>
+        </p>
+        <p>Te pedimos disculpas por cualquier inconveniente. Esperamos poder aclarar esta situación.</p>
         <p>Con cariño,</p>
         <p><strong>El equipo de Buddify</strong></p>
       `,

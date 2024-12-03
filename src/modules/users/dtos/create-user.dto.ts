@@ -1,7 +1,9 @@
 import {
+  IsBoolean,
   IsDate,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
   Matches,
@@ -98,4 +100,8 @@ export class CreateUserDto {
     },
   )
   password: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isThirdParty?: boolean;
 }

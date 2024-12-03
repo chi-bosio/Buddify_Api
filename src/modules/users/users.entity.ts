@@ -108,6 +108,15 @@ export class Users {
   isAdmin: boolean;
 
   /**
+   * Indica si el usuario se registró o usó autenticación de terceros.
+   */
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isThirdParty: boolean;
+
+  /**
    * Relación de uno a uno con las credenciales del usuario.
    */
   @OneToOne(() => Credentials)
