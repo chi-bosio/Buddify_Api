@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { Users } from '../users/users.entity';
 import { Category } from '../categories/category.entity';
 import { ActivityStatus } from './enums/activity-status.enum';
+import { Message } from 'modules/message/message.entity';
 
 @Entity({
   name: "activities",
@@ -132,4 +133,7 @@ export class Activity {
     default: ActivityStatus.PENDING,
 })
   status: ActivityStatus;
+
+  @OneToMany(() => Message, (message) => message.activity)
+  messages: Message[];
 }
