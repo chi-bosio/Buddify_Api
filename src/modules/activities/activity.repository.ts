@@ -1,14 +1,20 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Activity } from "./activity.entity";
-import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
-import { In, LessThan, MoreThan, Repository } from "typeorm";
-import { Category } from "../categories/category.entity";
-import { Users } from "../users/users.entity";
-import { EntityManager } from "typeorm";
-import { CreateActivityDto } from "./dtos/create-activity.dto";
-import { SearchActivitiesDto } from "./dtos/search-activities.dto";
-import { ActivityStatus } from "./enums/activity-status.enum";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Activity } from './activity.entity';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { In, Repository, Between, Not } from 'typeorm';
+import { Category } from '../categories/category.entity';
+import { Users } from '../users/users.entity';
+import { EntityManager } from 'typeorm';
+import { CreateActivityDto } from './dtos/create-activity.dto';
+import { SearchActivitiesDto } from './dtos/search-activities.dto';
+import { ActivityStatus } from './enums/activity-status.enum';
 import * as moment from 'moment';
+import { MailService } from 'modules/mail/mail.service';
 
 @Injectable()
 export class ActivityRepository {
@@ -20,42 +26,70 @@ export class ActivityRepository {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     @InjectEntityManager() private readonly manager: EntityManager,
+    private readonly mailService: MailService,
   ) {}
 
-async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
-  const userExist= await this.userRepository.findOne({where:{id:createActivityDto.creatorId}});
-  if(!userExist) {
-    throw new BadRequestException('Usuario inexistente');
-  }
-  const categoryExist= await this.categoryRepository.findOne({where: {id:createActivityDto.categoryId}});
-  if(!categoryExist) {
-    throw new BadRequestException('Categoria inexistente');
-  }
-  const { count } = await this.getUserCreatedActivitiesCount(
-    createActivityDto.creatorId,
-  );
+  async create(
+    createActivityDto: CreateActivityDto,
+  ): Promise<{ message: string }> {
+    const userExist = await this.userRepository.findOne({
+      where: { id: createActivityDto.creatorId },
+    });
+    if (!userExist) {
+      throw new BadRequestException('Usuario inexistente');
+    }
 
-  if (!userExist.isPremium && count >= 5) {
-    throw new BadRequestException(
-      'Has alcanzado el límite de actividades creadas este mes',
+    if (userExist.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
+    }
+    ////////////////////////////////////////////////////////////
+
+    const { count } = await this.getUserCreatedActivitiesCount(
+      createActivityDto.creatorId,
     );
+
+    if (!userExist.isPremium && count >= 3) {
+      throw new BadRequestException(
+        'Has alcanzado el límite de actividades creadas este mes',
+      );
+    }
+    ///////////////////////////////////////////////////////////
+
+    const categoryExist = await this.categoryRepository.findOne({
+      where: { id: createActivityDto.categoryId },
+    });
+    if (!categoryExist) {
+      throw new BadRequestException('Categoria inexistente');
+    }
+
+    const newActivity = {
+      name: createActivityDto.name,
+      description: createActivityDto.description,
+      image: createActivityDto.image,
+      date: new Date(createActivityDto.date),
+      time: createActivityDto.time,
+      place: createActivityDto.place,
+      latitude: createActivityDto.latitude,
+      longitude: createActivityDto.longitude,
+      creator: userExist,
+      category: categoryExist,
+      participants: [],
+    };
+
+    await this.activityRepository.save(newActivity);
+    await this.mailService.sendActivityCreatedEmail(
+      userExist.email,
+      userExist.name,
+      {
+        name: createActivityDto.name,
+        date: new Date(createActivityDto.date),
+        time: createActivityDto.time,
+        place: createActivityDto.place,
+      },
+    );
+
+    return { message: 'Actividad creada con exito' };
   }
-  const newActivity = {
-    name: createActivityDto.name,
-    description: createActivityDto.description,
-    image: createActivityDto.image,
-    date: new Date(createActivityDto.date), 
-    time: createActivityDto.time,
-    place: createActivityDto.place,
-    latitude: createActivityDto.latitude,
-    longitude: createActivityDto.longitude,
-    creator: userExist,
-    category:categoryExist,
-    participants: []
-  };
-  await this.activityRepository.save(newActivity);
-  return {message: 'Actividad creada con exito'};
-}
 
   async searchActivities(
     query: SearchActivitiesDto,
@@ -181,6 +215,9 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       if (!user) {
         throw new NotFoundException('Usuario inexistente');
       }
+      if (user.isBanned) {
+        throw new ForbiddenException('Usuario baneado');
+      }
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
       if (isParticipant || activity.creator.id === user.id) {
@@ -188,6 +225,28 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
           'El usuario ya es participante en esta actividad',
         );
       }
+      ////////////////////////////////////////////////////////////
+      if (!user.isPremium) {
+        const startOfMonth = moment().startOf('month').toDate(); // Fecha de inicio del mes actual
+        const endOfMonth = moment().endOf('month').toDate(); // Fecha de fin del mes actual
+
+        const activitiesThisMonth = await queryRunner.manager.count(Activity, {
+          where: {
+            participants: { id: userId }, // Filtrar actividades con el usuario como participante
+            date: Between(startOfMonth, endOfMonth), // Dentro del mes actual
+            status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])), // Excluir actividades finalizadas o canceladas
+          },
+        });
+
+        if (activitiesThisMonth >= 3) {
+          throw new BadRequestException({
+            message:
+              'Los usuarios no Premium solo pueden unirse a 3 actividades por mes', // Mensaje para el front
+            errorCode: 'LIMIT_REACHED', // Código único para identificar este error
+          });
+        }
+      }
+      ////////////////////////////////////////////////////////////
 
       user.participatedActivities.push(activity);
       activity.participants.push(user);
@@ -200,6 +259,13 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       }
       await queryRunner.manager.save(user);
       await queryRunner.manager.save(activity);
+
+      await this.mailService.sendJoinedActivityEmail(user.email, user.name, {
+        name: activity.name,
+        date: activity.date,
+        time: activity.time,
+        place: activity.place,
+      });
 
       await queryRunner.commitTransaction();
 
@@ -240,16 +306,19 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       if (!user) {
         throw new NotFoundException('Usuario inexistente');
       }
+      if (user.isBanned) {
+        throw new ForbiddenException('Usuario baneado');
+      }
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
       if (isParticipant) {
-        console.log('Participante');
         user.participatedActivities = user.participatedActivities.filter(
           (act) => act.id !== activity.id,
         );
         activity.participants = activity.participants.filter(
           (p) => p.id === user.id,
         );
+
         if (
           activity.status === ActivityStatus.CONFIRMED &&
           activity.participants.length < 5
@@ -257,18 +326,56 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
           //si el nro de parcipante baja la actividad pasa a pendiente
           activity.status = ActivityStatus.PENDING;
         }
+
         await queryRunner.manager.save(activity);
         await queryRunner.manager.save(user);
+
+        await this.mailService.sendCanceledParticipationEmail(
+          user.email,
+          user.name,
+          {
+            name: activity.name,
+            date: activity.date,
+            time: activity.time,
+            place: activity.place,
+          },
+        );
+
         message = 'Ya no eres participante de la actividad!';
       } else if (activity.creator.id === user.id) {
-        console.log('Creador');
         if (activity.status === ActivityStatus.CANCELLED)
-          throw new BadRequestException('La actividad ya a sido cancelada');
+          throw new BadRequestException('La actividad ya ha sido cancelada');
+
         activity.status = ActivityStatus.CANCELLED;
         await queryRunner.manager.save(activity);
-        message = 'Actividad cancelada con exito!';
+
+        await this.mailService.sendActivityCanceledByCreatorEmail(
+          user.email,
+          user.name,
+          {
+            name: activity.name,
+            date: activity.date,
+            time: activity.time,
+            place: activity.place,
+          },
+        );
+
+        if (
+          activity.participants.map((participant) =>
+            this.mailService.sendActivityCanceledToParticipantsEmail(
+              participant.email,
+              participant.name,
+              {
+                name: activity.name,
+                date: activity.date,
+                time: activity.time,
+                place: activity.place,
+              },
+            ),
+          )
+        )
+          message = 'Actividad cancelada con exito!';
       } else {
-        console.log('Burro');
         throw new BadRequestException(
           'No participas de esta actividad o no eres el creador',
         );
@@ -302,6 +409,9 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
     }
+    if (user.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
+    }
     const createdActivities = await this.activityRepository.find({
       where: { creator: { id: userId } },
       relations: ['creator', 'category', 'participants'],
@@ -312,11 +422,10 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
       joined: joinedActivities,
     };
   }
-  
+
   async getUserCreatedActivitiesCount(
     userId: string,
   ): Promise<{ count: number }> {
-    // Verificar existencia del usuario
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -324,27 +433,31 @@ async create(createActivityDto: CreateActivityDto): Promise<{message:string}> {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
-
-    // Si el usuario es premium, devolvemos el conteo sin restricciones
-    if (user.isPremium) {
-      const count = await this.activityRepository.count({
-        where: { creator: { id: userId } },
-      });
-      return { count };
+    if (user.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
     }
 
-    // Validar actividades del mes actual para usuarios no premium
-    const startOfMonth = moment().startOf('month').toDate();
-    const endOfMonth = moment().endOf('month').toDate();
+    let count = 0;
 
-    const count = await this.activityRepository.count({
-      where: {
-        creator: { id: userId },
-        date: MoreThan(startOfMonth) && LessThan(endOfMonth), // Actividades creadas dentro del mes actual
-      },
-    });
+    if (user.isPremium) {
+      count = await this.activityRepository.count({
+        where: {
+          creator: { id: userId },
+        },
+      });
+    } else {
+      const startOfMonth = moment().startOf('month').toDate();
+      const endOfMonth = moment().endOf('month').toDate();
+
+      count = await this.activityRepository.count({
+        where: {
+          creator: { id: userId },
+          date: Between(startOfMonth, endOfMonth),
+          status: Not(In([ActivityStatus.SUCCESS, ActivityStatus.CANCELLED])),
+        },
+      });
+    }
 
     return { count };
   }
-
 }

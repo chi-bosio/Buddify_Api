@@ -140,4 +140,12 @@ export class Users {
     nullable: false,
   })
   avatar: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isBanned: boolean;
+  @Column({ nullable: true })
+  bannedAt: Date;
 }

@@ -36,11 +36,24 @@ export class StripeService {
         cardholderName: cardholderName.toString(),
         paymentDate: paymentDate.toString(),
       };
-
+      //expira el plan anterior si es que esta activo
+      const existingPayment = await this.paymentRepository.findOne({
+        where: {
+          status: 'succeeded', 
+          userId: userId,
+          planId: planId,
+        },
+      });
+  
+      if (existingPayment) {
+        existingPayment.status = 'expired';
+        await this.paymentRepository.save(existingPayment);
+      }
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: amount,
         currency: currency,
         metadata: metadata,
+        automatic_payment_methods: { enabled: true },
       });
 
       const payment = this.paymentRepository.create({
@@ -52,7 +65,7 @@ export class StripeService {
         currency,
         stripePaymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
-        status: 'pending',
+        status: paymentIntent.status,
         cardholderName,
         paymentDate: new Date(paymentDate),
       });
@@ -64,5 +77,45 @@ export class StripeService {
       console.error('Error al crear el PaymentIntent:', error);
       throw new Error(`Error en StripeService: ${error.message}`);
     }
+  }
+
+  async updatePaymentStatus(paymentId: string) {
+    const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
+
+    if (!payment) {
+      throw new Error('Pago no encontrado');
+    }
+
+    const response = await fetch(`https://api.stripe.com/v1/payment_intents/${payment.stripePaymentIntentId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener el PaymentIntent desde Stripe: ${response.statusText}`);
+    }
+
+    const paymentIntent = await response.json();
+    switch (paymentIntent.status) {
+      case 'succeeded':
+        payment.status = 'succeeded';
+        break;
+      case 'pending':
+        payment.status = 'pending';
+        break;
+      case 'failed':
+        payment.status = 'failed';
+        break;
+      case 'canceled':
+        payment.status = 'canceled';
+        break;
+      default:
+        payment.status = 'unknown'; 
+        break;
+    }
+
+    await this.paymentRepository.save(payment);
   }
 }

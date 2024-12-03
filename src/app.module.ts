@@ -6,6 +6,8 @@ import { CategoryModule } from 'modules/categories/category.module';
 import { StripeModule } from 'modules/stripe/stripe.module';
 import { UsersModule } from 'modules/users/users.module';
 import { ActivityModule } from 'modules/activities/activity.module';
+import { TasksModule } from 'modules/task/task.module';
+import { ReportModule } from 'modules/reportactivities/report.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { ActivityModule } from 'modules/activities/activity.module';
     ActivityModule,
     CategoryModule,
     StripeModule,
+    TasksModule,
+    ReportModule,
   ],
   controllers: [],
   providers: [],

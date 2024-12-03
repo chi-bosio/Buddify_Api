@@ -27,7 +27,6 @@ dotenv.config({ path: './.env.local' });
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
 
-
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -53,13 +52,13 @@ export class AuthController {
   @Get('/google/callback')
   async googleCallback(@Req() req, @Res() res) {
     const user = req.user;
-  
+
     if (!user) {
       throw new UnauthorizedException('No se pudo autenticar con Google');
     }
-  
+
     const profileComplete = user.profileComplete;
-  
+
     const payload = {
       name: user.name,
       sub: user.id,
@@ -67,14 +66,14 @@ export class AuthController {
       isAdmin: user.isAdmin,
       avatar: user.avatar,
     };
-  
+
     const token = this.jwtService.sign(payload);
-  
+
     const redirectUrl = `${process.env.URL_FRONT}?token=${token}&profileComplete=${profileComplete}`;
-  
+
     return res.redirect(redirectUrl);
   }
-  
+
   @Post('generate-reset-token')
   async generateResetPassword(
     @Body('email') email: string,
@@ -100,34 +99,58 @@ export class AuthController {
     @Body('newPassword') newPassword: string,
   ): Promise<{ message: string }> {
     await this.authService.resetPassword(token, newPassword);
+
+    const email = await this.authService.validateResetToken(token);
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    await this.mailService.sendPasswordUpdatedEmail(user.email, user.name);
+
     return { message: 'Contraseña actualizada con éxito' };
   }
 
   @Post('change-password')
   @UseGuards(AuthGuard)
-  changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
+  async changePassword(@Request() req, @Body() changePswDto: ChangePswDto) {
     const userId = req.user.sub;
-    return this.authService.changePassword(userId, changePswDto);
+    await this.authService.changePassword(userId, changePswDto);
+
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontraod');
+    }
+
+    await this.mailService.sendPasswordUpdatedEmail(user.email, user.name);
+
+    return { message: 'Nontraseña actualizada con éxito' };
   }
-  
+
   @UseGuards(AuthGuard)
   @Put('/completeprofile')
-async completeProfile(@Body() completeUserDto: CompleteProfileDto, @Req() req, @Res() res) {
+  async completeProfile(
+    @Body() completeUserDto: CompleteProfileDto,
+    @Req() req,
+    @Res() res,
+  ) {
 
-  const userId = req.user.sub;
- 
-  if (!userId) {
-    return res.status(400).json({
-      message: 'No se pudo identificar al usuario',
+    const userId = req.user.sub;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: 'No se pudo identificar al usuario',
+      });
+    }
+
+    const updatedUser = await this.authService.updateUserProfile(
+      userId,
+      completeUserDto,
+    );
+
+    return res.status(200).json({
+      message: 'Perfil actualizado con éxito',
+      user: updatedUser,
     });
   }
-
-  const updatedUser = await this.authService.updateUserProfile(userId, completeUserDto);
-
-  return res.status(200).json({
-    message: 'Perfil actualizado con éxito',
-    user: updatedUser,
-  });
-}
-
 }
