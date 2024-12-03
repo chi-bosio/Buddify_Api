@@ -7,6 +7,10 @@ import { UpdateUserPremiumStatusDto } from './dtos/change-is-premium.dto';
 @Injectable()
 export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
+
+  getUsers() {
+    return this.userRepository.getUsers();
+  }
   register(newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userRepository.register(newUser);
   }
@@ -38,5 +42,13 @@ export class UsersService {
       id,
       updatePremiumStatusDto,
     );
+  }
+
+  banUser(userId: string) {
+    return this.userRepository.banUser(userId);
+  }
+
+  unbanUser(userId: string) {
+    return this.userRepository.unbanUser(userId);
   }
 }

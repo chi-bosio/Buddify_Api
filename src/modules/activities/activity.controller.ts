@@ -1,7 +1,15 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
-import { CreateActivityDto } from "./dtos/create-activity.dto";
-import { ActivityService } from "./activity.service";
-import { SearchActivitiesDto } from "./dtos/search-activities.dto";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateActivityDto } from './dtos/create-activity.dto';
+import { ActivityService } from './activity.service';
+import { SearchActivitiesDto } from './dtos/search-activities.dto';
 
 @Controller('activities')
 export class ActivityController {
