@@ -48,6 +48,12 @@ export class AuthService {
 
     const user = credentials.user;
 
+    if (user.isBanned) {
+      throw new UnauthorizedException(
+        'Tu cuenta está baneada. Contacta al soporte.',
+      );
+    }
+
     const payload = {
       name: user.name,
       sub: user.id,
@@ -56,7 +62,7 @@ export class AuthService {
       avatar: user.avatar,
     };
 
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload,{ expiresIn: '24h' });
 
     return {
       success: true,

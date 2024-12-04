@@ -43,4 +43,33 @@ export class ActivityService {
   ): Promise<{ count: number }> {
     return this.activityRepository.getUserCreatedActivitiesCount(userId);
   }
+
+  async getTotalActivitiesByMonth() {
+    return this.activityRepository.getTotalActivitiesByMonth();
+  }
+
+  async getTotalActivitiesByCountry() {
+    return this.activityRepository.getTotalActivitiesByCountry();
+  }
+
+  async getTotalActivities() {
+    return this.activityRepository.getTotalActivities();
+  }
+  async getTotalActivitiesSuccess() {
+    return this.activityRepository.getTotalActivitiesSuccess();
+  }
+
+  async getTotalActivitiesConfirmed() {
+    return this.activityRepository.getTotalActivitiesConfirmed();
+  }
+  async getTotalActivitiesPending() {
+    return this.activityRepository.getTotalActivitiesPending();
+  }
+  async getTotalActivitiesCancelled() {
+    return this.activityRepository.getTotalActivitiesCancelled();
+  }
+
+  async getActivities() {
+    return this.activityRepository.getActivities();
+  }
 }

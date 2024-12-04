@@ -8,7 +8,7 @@ import { UsersService } from '../users/users.service';
 import { MailModule } from '../mail/mail.module';
 import { AuthService } from './auth.service';
 import { ConfigModule } from '@nestjs/config';
-import googleOathConfig from './config/google-oath.config';
+import googleOathConfig from './config/google-oauth.config';
 import GoogleStrategy from './strategies/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';

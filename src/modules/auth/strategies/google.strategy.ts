@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import googleOathConfig from '../config/google-oath.config';
+import googleOathConfig from '../config/google-oauth.config';
 import { ConfigType } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 import { CreateUserDto } from '../../users/dtos/create-user.dto';
@@ -44,7 +44,6 @@ export default class GoogleStrategy extends PassportStrategy(Strategy) {
 
     const user = await this.authService.validateGoogleUser(googleUser);
 
-    // Simplemente devuelve al usuario con el estado de perfil
     done(null, user);
   }
 }

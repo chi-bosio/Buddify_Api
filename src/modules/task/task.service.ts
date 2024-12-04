@@ -53,7 +53,6 @@ export class TasksService {
     for (const payment of payments) {
       const expirationDate = moment(payment.paymentDate).startOf('day').add(30, 'days');
       const daysToExpire = expirationDate.diff(now, 'days');
-      console.log(daysToExpire);
       if (daysToExpire === 7) {
         const user = await this.userRepository.findOne({ where: { id: payment.userId } });
         if (user) {

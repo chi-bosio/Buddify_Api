@@ -7,6 +7,10 @@ import { UpdateUserPremiumStatusDto } from './dtos/change-is-premium.dto';
 @Injectable()
 export class UsersService {
   constructor(private readonly userRepository: UsersRepository) {}
+
+  getUsers() {
+    return this.userRepository.getUsers();
+  }
   register(newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userRepository.register(newUser);
   }
@@ -38,5 +42,38 @@ export class UsersService {
       id,
       updatePremiumStatusDto,
     );
+  }
+  getPremiumCountries() {
+    return this.userRepository.getPremiumCountries();
+  }
+
+  getTotalPremiumUsers(): Promise<number> {
+    return this.userRepository.getTotalPremiumUsers();
+  }
+  banUser(userId: string) {
+    return this.userRepository.banUser(userId);
+  }
+
+  unbanUser(userId: string) {
+    return this.userRepository.unbanUser(userId);
+  }
+
+  getTotalUsers() {
+    return this.userRepository.getTotalUsers();
+  }
+
+  getUsersCountries() {
+    return this.userRepository.getUsersCountries();
+  }
+
+  getTotalBannedUsers(): Promise<number> {
+    return this.userRepository.getTotalBannedUsers();
+  }
+
+  changeToAdmin(userId: string) {
+    return this.userRepository.changeToAdmin(userId);
+  }
+  changeToUser(userId: string) {
+    return this.userRepository.changeToUser(userId);
   }
 }

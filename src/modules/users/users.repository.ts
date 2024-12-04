@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   UnauthorizedException,
@@ -24,6 +25,16 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
+
+  async getUsers() {
+    const users = await this.usersRepository.find();
+    if (!Array.isArray(users)) {
+      throw new BadRequestException(
+        'La respuesta no es un arreglo de usuarios',
+      );
+    }
+    return users;
+  }
 
   async findById(id: string): Promise<Users> {
     return await this.usersRepository.findOne({ where: { id } });
@@ -126,6 +137,9 @@ export class UsersRepository {
     if (!userExists) {
       throw new BadRequestException('No existe el usuario');
     }
+    if (userExists.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
+    }
     await this.usersRepository.update(id, user);
     return userExists;
   }
@@ -149,5 +163,85 @@ export class UsersRepository {
       message: 'Estado de Premium actualizado correctamente',
       user: updatedUser,
     };
+  }
+  async getPremiumCountries() {
+    const countries = await this.usersRepository
+      .createQueryBuilder('user')
+      .select('user.country')
+      .addSelect('COUNT(user.id)', 'premiumCount')
+      .where('user.isPremium = :isPremium', { isPremium: true })
+      .groupBy('user.country')
+      .getRawMany();
+    return countries.map((country) => ({
+      name: country.user_country,
+      total: Number(country.premiumCount),
+    }));
+  }
+
+  async getTotalPremiumUsers(): Promise<number> {
+    const count = await this.usersRepository.count({
+      where: { isPremium: true },
+    });
+    return count;
+  }
+  async banUser(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isBanned = true;
+    user.bannedAt = new Date();
+    await this.usersRepository.save(user);
+    await this.mailService.sendBanNotification(user.email, user.name);
+    return user;
+  }
+
+  async unbanUser(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isBanned = false;
+    user.bannedAt = null;
+
+    return await this.usersRepository.save(user);
+  }
+  async getTotalUsers(): Promise<number> {
+    return await this.usersRepository.count();
+  }
+
+  async getUsersCountries() {
+    const countries = await this.usersRepository
+      .createQueryBuilder('user')
+      .select('user.country')
+      .addSelect('COUNT(user.id)', 'premiumCount')
+      .groupBy('user.country')
+      .getRawMany();
+    return countries.map((country) => ({
+      name: country.user_country,
+      total: Number(country.premiumCount),
+    }));
+  }
+
+  async getTotalBannedUsers(): Promise<number> {
+    return await this.usersRepository.count({ where: { isBanned: true } });
+  }
+
+  async changeToAdmin(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isAdmin = true;
+    return await this.usersRepository.save(user);
+  }
+
+  async changeToUser(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isAdmin = false;
+    return await this.usersRepository.save(user);
   }
 }
