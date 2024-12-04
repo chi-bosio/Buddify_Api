@@ -3,7 +3,7 @@ import { SendMailOptions, Transporter } from 'nodemailer';
 import * as dotenv from 'dotenv';
 import { MailOptions } from '../modules/mail/interfaces/mail-options.interface';
 
-dotenv.config({ path: './.env.local' });
+dotenv.config({ path: './.env' });
 
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
   throw new Error('Error interno con las credenciales');
