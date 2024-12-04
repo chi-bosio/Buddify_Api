@@ -1,11 +1,50 @@
-import { Body, Controller, Get, Param, Patch, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UpdateUserPremiumStatusDto } from './dtos/change-is-premium.dto';
+import { AuthGuard } from 'guards/auth.guard';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'decorators/roles.decorator';
+import { Role } from 'utils/roles';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('premium-countries') 
+  getPremiumCountries() {
+    return this.userService.getPremiumCountries();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-premium')
+  async getTotalPremiumUsers() {
+    return await this.userService.getTotalPremiumUsers();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total')
+  async getTotalUsers() {
+    return this.userService.getTotalUsers();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('users-countries') 
+  getUsersCountries() {
+    return this.userService.getUsersCountries();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-banned')
+  async getTotalBannedUsers() {
+    return await this.userService.getTotalBannedUsers();
+  }
 
   @Get()
   getUsers() {

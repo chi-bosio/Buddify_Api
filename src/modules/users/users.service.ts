@@ -14,11 +14,11 @@ export class UsersService {
   register(newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userRepository.register(newUser);
   }
-
+  
   findByEmail(email: string) {
     return this.userRepository.findByEmail(email);
   }
-
+  
   findById(id: string) {
     return this.userRepository.findById(id);
   }
@@ -26,14 +26,14 @@ export class UsersService {
   getUserById(id: string) {
     return this.userRepository.getUserById(id);
   }
-
+  
   resetPassword(email: string, newPassword: string) {
     return this.userRepository.resetPassword(email, newPassword);
   }
   updateUser(id: string, user: Partial<Users>) {
     return this.userRepository.updateUser(id, user);
   }
-
+  
   updateUserPremiumStatus(
     id: string,
     updatePremiumStatusDto: UpdateUserPremiumStatusDto,
@@ -43,12 +43,30 @@ export class UsersService {
       updatePremiumStatusDto,
     );
   }
+  getPremiumCountries() {
+    return this.userRepository.getPremiumCountries();
+  }
 
+  getTotalPremiumUsers(): Promise<number> {
+    return this.userRepository.getTotalPremiumUsers()
+  }
   banUser(userId: string) {
     return this.userRepository.banUser(userId);
   }
 
   unbanUser(userId: string) {
     return this.userRepository.unbanUser(userId);
+  }
+
+  getTotalUsers() {
+    return this.userRepository.getTotalUsers();
+  }
+
+  getUsersCountries() {
+    return this.userRepository.getUsersCountries();
+  }
+
+  getTotalBannedUsers(): Promise<number> {
+    return this.userRepository.getTotalBannedUsers()
   }
 }

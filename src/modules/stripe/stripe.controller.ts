@@ -4,8 +4,14 @@ import {
   Body,
   HttpException,
   HttpStatus,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
+import { Role } from 'utils/roles';
+import { Roles } from 'decorators/roles.decorator';
+import { AuthGuard } from 'guards/auth.guard';
+import { RolesGuard } from 'guards/roles.guard';
 
 @Controller('stripe')
 export class StripeController {
@@ -83,5 +89,19 @@ export class StripeController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  @UseGuards(AuthGuard,RolesGuard)
+  @Roles(Role.Admin)
+  @Get('earnings')
+  async getMonthlyEarnings() {
+    return this.stripeService.getMonthlyEarnings();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-earnings') 
+  async getTotalEarnings() {
+    return await this.stripeService.getTotalEarnings();
   }
 }
