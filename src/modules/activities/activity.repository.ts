@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -36,6 +37,10 @@ export class ActivityRepository {
     });
     if (!userExist) {
       throw new BadRequestException('Usuario inexistente');
+    }
+
+    if (userExist.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
     }
     ////////////////////////////////////////////////////////////
 
@@ -211,6 +216,9 @@ export class ActivityRepository {
       if (!user) {
         throw new NotFoundException('Usuario inexistente');
       }
+      if (user.isBanned) {
+        throw new ForbiddenException('Usuario baneado');
+      }
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
       if (isParticipant || activity.creator.id === user.id) {
@@ -298,6 +306,9 @@ export class ActivityRepository {
 
       if (!user) {
         throw new NotFoundException('Usuario inexistente');
+      }
+      if (user.isBanned) {
+        throw new ForbiddenException('Usuario baneado');
       }
 
       const isParticipant = activity.participants.some((p) => p.id === user.id);
@@ -399,6 +410,9 @@ export class ActivityRepository {
     if (!user) {
       throw new NotFoundException('Usuario inexistente');
     }
+    if (user.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
+    }
     const createdActivities = await this.activityRepository.find({
       where: { creator: { id: userId } },
       relations: ['creator', 'category', 'participants'],
@@ -435,6 +449,9 @@ export class ActivityRepository {
 
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
+    }
+    if (user.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
     }
 
     let count = 0;

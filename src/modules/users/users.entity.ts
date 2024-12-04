@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Credentials } from '../credentials/credentials.entity';
 import { Activity } from '../activities/activity.entity';
+import { Message } from 'modules/message/message.entity';
 
 @Entity()
 export class Users {
@@ -108,6 +109,15 @@ export class Users {
   isAdmin: boolean;
 
   /**
+   * Indica si el usuario se registró o usó autenticación de terceros.
+   */
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isThirdParty: boolean;
+
+  /**
    * Relación de uno a uno con las credenciales del usuario.
    */
   @OneToOne(() => Credentials)
@@ -140,4 +150,15 @@ export class Users {
     nullable: false,
   })
   avatar: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isBanned: boolean;
+  @Column({ nullable: true })
+  bannedAt: Date;
+
+  @OneToMany(() => Message, (message) => message.sender)
+  messages: Message[];
 }

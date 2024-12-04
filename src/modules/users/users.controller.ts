@@ -25,6 +25,10 @@ export class UsersController {
     return await this.userService.getTotalPremiumUsers();
   }
 
+  @Get()
+  getUsers() {
+    return this.userService.getUsers();
+  }
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
@@ -49,5 +53,15 @@ export class UsersController {
     } else {
       throw new Error(result.message);
     }
+  }
+
+  @Patch(':id/ban')
+  banUser(@Param('id') userId: string) {
+    return this.userService.banUser(userId);
+  }
+
+  @Patch(':id/unban')
+  unbanUser(@Param('id') userId: string) {
+    return this.userService.unbanUser(userId);
   }
 }

@@ -8,6 +8,7 @@ import { UsersModule } from 'modules/users/users.module';
 import { ActivityModule } from 'modules/activities/activity.module';
 import { TasksModule } from 'modules/task/task.module';
 import { ReportModule } from 'modules/reportactivities/report.module';
+import { GatewayModule } from 'modules/chat/websocket.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ReportModule } from 'modules/reportactivities/report.module';
     StripeModule,
     TasksModule,
     ReportModule,
+    GatewayModule
   ],
   controllers: [],
   providers: [],

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   UnauthorizedException,
@@ -24,6 +25,10 @@ export class UsersRepository {
     private readonly manager: EntityManager,
     private readonly mailService: MailService,
   ) {}
+
+  async getUsers(): Promise<Users[]> {
+    return await this.usersRepository.find();
+  }
 
   async findById(id: string): Promise<Users> {
     return await this.usersRepository.findOne({ where: { id } });
@@ -101,7 +106,13 @@ export class UsersRepository {
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
-    
+
+    if (user.isThirdParty) {
+      throw new UnauthorizedException(
+        'Los usuarios autenticados con terceros no pueden restablecer su contraseña.',
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     
     const credentials = await this.credentialsRepository.findOne({
@@ -114,10 +125,14 @@ export class UsersRepository {
     credentials.password = hashedPassword;
     await this.credentialsRepository.save(credentials);
   }
+
   async updateUser(id: string, user: Partial<Users>): Promise<Users> {
     const userExists = await this.usersRepository.findOne({ where: { id } });
     if (!userExists) {
       throw new BadRequestException('No existe el usuario');
+    }
+    if (userExists.isBanned) {
+      throw new ForbiddenException('Usuario baneado');
     }
     await this.usersRepository.update(id, user);
     return userExists;
@@ -161,4 +176,27 @@ export class UsersRepository {
     const count = await this.usersRepository.count({ where: { isPremium: true } });
     return count;
   }
+  async banUser(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isBanned = true;
+    user.bannedAt = new Date();
+    await this.usersRepository.save(user);
+    await this.mailService.sendBanNotification(user.email, user.name);
+    return user;
+  }
+
+  async unbanUser(userId: string): Promise<Users> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    user.isBanned = false;
+    user.bannedAt = null;
+
+    return await this.usersRepository.save(user);
+  }
+
 }
