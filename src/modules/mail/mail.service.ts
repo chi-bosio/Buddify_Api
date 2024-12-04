@@ -4,7 +4,7 @@ import { sendMail } from '../../utils/mailer';
 import { AuthService } from '../auth/auth.service';
 import * as dotenv from 'dotenv';
 import * as moment from 'moment';
-dotenv.config({ path: './.env.local' });
+dotenv.config({ path: './.env' });
 
 @Injectable()
 export class MailService {
