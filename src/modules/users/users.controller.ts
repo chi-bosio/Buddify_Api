@@ -69,7 +69,7 @@ export class UsersController {
   updateUser(@Param('id') id: string, @Body() user: UpdateUserDto) {
     return this.userService.updateUser(id, user);
   }
-  @UseGuards(AuthGuard)
+  
   @Patch(':id/premium-status')
   async updatePremiumStatus(
     @Param('id') id: string,
