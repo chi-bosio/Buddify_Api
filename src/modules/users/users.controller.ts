@@ -58,15 +58,18 @@ export class UsersController {
   getUsers() {
     return this.userService.getUsers();
   }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
-
+  @UseGuards(AuthGuard)
   @Put(':id')
   updateUser(@Param('id') id: string, @Body() user: UpdateUserDto) {
     return this.userService.updateUser(id, user);
   }
+  @UseGuards(AuthGuard)
   @Patch(':id/premium-status')
   async updatePremiumStatus(
     @Param('id') id: string,
@@ -84,14 +87,26 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Patch(':id/ban')
-  @UseGuards(AuthGuard, RolesGuard[Role.Admin])
   banUser(@Param('id') userId: string) {
     return this.userService.banUser(userId);
   }
-
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Patch(':id/unban')
   unbanUser(@Param('id') userId: string) {
     return this.userService.unbanUser(userId);
+  }
+
+  @Patch(':id/promote')
+  changeToAdmin(@Param('id') userId: string) {
+    return this.userService.changeToAdmin(userId);
+  }
+
+  @Patch(':id/demote')
+  changeToUser(@Param('id') userId: string) {
+    return this.userService.changeToUser(userId);
   }
 }
