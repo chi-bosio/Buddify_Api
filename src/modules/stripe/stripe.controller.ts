@@ -18,7 +18,6 @@ export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post('create-payment-intent')
-  @UseGuards(AuthGuard)
   async createPaymentIntent(@Body() body: any) {
     const {
       planId,
