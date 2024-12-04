@@ -25,6 +25,27 @@ export class UsersController {
     return await this.userService.getTotalPremiumUsers();
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total')
+  async getTotalUsers() {
+    return this.userService.getTotalUsers();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('users-countries') 
+  getUsersCountries() {
+    return this.userService.getUsersCountries();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-banned')
+  async getTotalBannedUsers() {
+    return await this.userService.getTotalBannedUsers();
+  }
+
   @Get()
   getUsers() {
     return this.userService.getUsers();

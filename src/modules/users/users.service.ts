@@ -57,4 +57,16 @@ export class UsersService {
   unbanUser(userId: string) {
     return this.userRepository.unbanUser(userId);
   }
+
+  getTotalUsers() {
+    return this.userRepository.getTotalUsers();
+  }
+
+  getUsersCountries() {
+    return this.userRepository.getUsersCountries();
+  }
+
+  getTotalBannedUsers(): Promise<number> {
+    return this.userRepository.getTotalBannedUsers()
+  }
 }

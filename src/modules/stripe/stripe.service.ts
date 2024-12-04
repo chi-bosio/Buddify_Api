@@ -119,14 +119,14 @@ export class StripeService {
     await this.paymentRepository.save(payment);
   }
 
-  async getMonthlyEarnings(): Promise<{ month: string; total: number }[]> {
+  async getMonthlyEarnings(): Promise<{ name: string; total: number }[]> {
     return this.paymentRepository
       .createQueryBuilder('payment')
-      .select("TO_CHAR(payment.paymentDate, 'YYYY-MM')", 'month') 
+      .select("TO_CHAR(payment.paymentDate, 'YYYY-MM')", 'name') 
       .addSelect('SUM(payment.amount) / 1000', 'total') 
       .where("payment.status = 'succeeded'") 
       .groupBy("TO_CHAR(payment.paymentDate, 'YYYY-MM')")
-      .orderBy('month', 'ASC')
+      .orderBy('name', 'ASC')
       .getRawMany();
   }
 

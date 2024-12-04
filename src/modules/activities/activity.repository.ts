@@ -477,4 +477,42 @@ export class ActivityRepository {
 
     return { count };
   }
+
+  async getTotalActivitiesByMonth(): Promise<{ name: string; total: number }[]> {
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .select("TO_CHAR(activity.date, 'YYYY-MM')", 'name')
+      .addSelect('COUNT(activity.id)', 'total')
+      .groupBy("TO_CHAR(activity.date, 'YYYY-MM')")
+      .orderBy("TO_CHAR(activity.date, 'YYYY-MM')", 'ASC')
+      .getRawMany();
+  }
+
+  async getTotalActivitiesByCountry(): Promise<{ name: string; total: number }[]> {
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .innerJoin('activity.creator', 'creator')
+      .select('creator.country', 'name')
+      .addSelect('COUNT(activity.id)', 'total')
+      .groupBy('creator.country')
+      .orderBy('total', 'DESC')
+      .getRawMany();
+  }
+
+  async getTotalActivities(): Promise< number > {
+    return await this.activityRepository.count();
+  }
+
+  async getTotalActivitiesSuccess(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.SUCCESS}});
+  }
+  async getTotalActivitiesConfirmed(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.CONFIRMED}});
+  }
+  async getTotalActivitiesPending(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.PENDING}});
+  }
+  async getTotalActivitiesCancelled(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.CANCELLED}});
+  }
 }

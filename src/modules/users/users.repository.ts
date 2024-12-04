@@ -167,8 +167,8 @@ export class UsersRepository {
       .groupBy('user.country')
       .getRawMany(); 
     return countries.map(country => ({
-      country: country.user_country,  
-      premiumCount: Number(country.premiumCount),
+      name: country.user_country,  
+      total: Number(country.premiumCount),
     }));
   }
 
@@ -198,5 +198,24 @@ export class UsersRepository {
 
     return await this.usersRepository.save(user);
   }
+  async getTotalUsers(): Promise< number > {
+    return await this.usersRepository.count();
+  }
 
+  async getUsersCountries() {
+    const countries = await this.usersRepository
+      .createQueryBuilder('user')
+      .select('user.country')
+      .addSelect('COUNT(user.id)', 'premiumCount')
+      .groupBy('user.country')
+      .getRawMany(); 
+    return countries.map(country => ({
+      name: country.user_country,  
+      total: Number(country.premiumCount),
+    }));
+  }
+
+  async getTotalBannedUsers(): Promise<number> {
+    return await this.usersRepository.count({ where: { isBanned: true } });
+  }
 }
