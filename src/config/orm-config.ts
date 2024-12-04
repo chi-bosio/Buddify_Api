@@ -15,4 +15,9 @@ const ormConfig: TypeOrmModuleOptions = {
   synchronize: true,
   dropSchema: false,
 };
+console.log(process.env.DB_HOST)
+console.log(parseInt(process.env.DB_PORT, 10))
+console.log(process.env.DB_USERNAME)
+console.log(process.env.DB_PASSWORD)
+console.log(process.env.DB_DATABASE)
 export default ormConfig;
