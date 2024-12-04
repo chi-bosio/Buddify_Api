@@ -10,11 +10,11 @@ export class UsersService {
   register(newUser: CreateUserDto): Promise<{ message: string }> {
     return this.userRepository.register(newUser);
   }
-
+  
   findByEmail(email: string) {
     return this.userRepository.findByEmail(email);
   }
-
+  
   findById(id: string) {
     return this.userRepository.findById(id);
   }
@@ -22,14 +22,14 @@ export class UsersService {
   getUserById(id: string) {
     return this.userRepository.getUserById(id);
   }
-
+  
   resetPassword(email: string, newPassword: string) {
     return this.userRepository.resetPassword(email, newPassword);
   }
   updateUser(id: string, user: Partial<Users>) {
     return this.userRepository.updateUser(id, user);
   }
-
+  
   updateUserPremiumStatus(
     id: string,
     updatePremiumStatusDto: UpdateUserPremiumStatusDto,
@@ -38,5 +38,12 @@ export class UsersService {
       id,
       updatePremiumStatusDto,
     );
+  }
+  getPremiumCountries() {
+    return this.userRepository.getPremiumCountries();
+  }
+
+  getTotalPremiumUsers(): Promise<number> {
+    return this.userRepository.getTotalPremiumUsers()
   }
 }
