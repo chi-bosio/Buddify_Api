@@ -59,12 +59,12 @@ export class UsersController {
     return this.userService.getUsers();
   }
 
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Get(':id')
   getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
-  @UseGuards(AuthGuard)
+  //@UseGuards(AuthGuard)
   @Put(':id')
   updateUser(@Param('id') id: string, @Body() user: UpdateUserDto) {
     return this.userService.updateUser(id, user);
