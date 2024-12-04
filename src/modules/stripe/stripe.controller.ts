@@ -4,20 +4,21 @@ import {
   Body,
   HttpException,
   HttpStatus,
-  Get,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
-import { Role } from 'utils/roles';
-import { Roles } from 'decorators/roles.decorator';
 import { AuthGuard } from 'guards/auth.guard';
 import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'decorators/roles.decorator';
+import { Role } from 'utils/roles';
 
 @Controller('stripe')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post('create-payment-intent')
+  @UseGuards(AuthGuard)
   async createPaymentIntent(@Body() body: any) {
     const {
       planId,
@@ -91,7 +92,7 @@ export class StripeController {
     }
   }
 
-  @UseGuards(AuthGuard,RolesGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get('earnings')
   async getMonthlyEarnings() {
@@ -100,7 +101,7 @@ export class StripeController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin)
-  @Get('total-earnings') 
+  @Get('total-earnings')
   async getTotalEarnings() {
     return await this.stripeService.getTotalEarnings();
   }
