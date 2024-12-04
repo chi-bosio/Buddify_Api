@@ -68,4 +68,8 @@ export class ActivityService {
   async getTotalActivitiesCancelled() {
     return this.activityRepository.getTotalActivitiesCancelled();
   }
+
+  async getActivities() {
+    return this.activityRepository.getActivities();
+  }
 }

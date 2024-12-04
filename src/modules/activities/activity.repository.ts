@@ -343,7 +343,7 @@ export class ActivityRepository {
         );
 
         message = 'Ya no eres participante de la actividad!';
-      } else if (activity.creator.id === user.id) {
+      } else if (activity.creator.id === user.id || user.isAdmin) {
         if (activity.status === ActivityStatus.CANCELLED)
           throw new BadRequestException('La actividad ya ha sido cancelada');
 
@@ -514,5 +514,8 @@ export class ActivityRepository {
   }
   async getTotalActivitiesCancelled(): Promise< number > {
     return await this.activityRepository.count({where:{status:ActivityStatus.CANCELLED}});
+  }
+  async getActivities(): Promise< Activity[] > {
+    return await this.activityRepository.find({relations:["creator","category"]});
   }
 }

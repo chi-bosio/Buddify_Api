@@ -59,6 +59,13 @@ export class ActivityController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.Admin)
+  @Get()
+  async getActivities() {
+    return this.activityService.getActivities();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Get('total-by-month')
   async getTotalActivitiesByMonth() {
     return this.activityService.getTotalActivitiesByMonth();
