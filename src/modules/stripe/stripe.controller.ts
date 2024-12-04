@@ -4,14 +4,17 @@ import {
   Body,
   HttpException,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
+import { AuthGuard } from 'guards/auth.guard';
 
 @Controller('stripe')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post('create-payment-intent')
+  @UseGuards(AuthGuard)
   async createPaymentIntent(@Body() body: any) {
     const {
       planId,

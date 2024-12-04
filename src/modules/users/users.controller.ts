@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UpdateUserPremiumStatusDto } from './dtos/change-is-premium.dto';
+import { AuthGuard } from 'guards/auth.guard';
+import { RolesGuard } from 'guards/roles.guard';
+import { Role } from 'utils/roles';
 
 @Controller('users')
 export class UsersController {
@@ -38,6 +49,7 @@ export class UsersController {
   }
 
   @Patch(':id/ban')
+  @UseGuards(AuthGuard, RolesGuard[Role.Admin])
   banUser(@Param('id') userId: string) {
     return this.userService.banUser(userId);
   }
