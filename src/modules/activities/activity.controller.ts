@@ -6,10 +6,15 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateActivityDto } from './dtos/create-activity.dto';
 import { ActivityService } from './activity.service';
 import { SearchActivitiesDto } from './dtos/search-activities.dto';
+import { AuthGuard } from 'guards/auth.guard';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'decorators/roles.decorator';
+import { Role } from 'utils/roles';
 
 @Controller('activities')
 export class ActivityController {
@@ -51,4 +56,51 @@ export class ActivityController {
   async getUserCreatedActivitiesCount(@Query('userId') userId: string) {
     return this.activityService.getUserCreatedActivitiesCount(userId);
   }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-by-month')
+  async getTotalActivitiesByMonth() {
+    return this.activityService.getTotalActivitiesByMonth();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-by-country')
+  async getTotalActivitiesByCountry() {
+    return this.activityService.getTotalActivitiesByCountry();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total')
+  async getTotalActivities() {
+    return this.activityService.getTotalActivities();
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-success')
+  async getTotalActivitiesSuccess() {
+    return this.activityService.getTotalActivitiesSuccess();
+  }
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-confirmed')
+  async getTotalActivitiesConfirmed() {
+    return this.activityService.getTotalActivitiesConfirmed();
+  }
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-pending')
+  async getTotalActivitiesPending() {
+    return this.activityService.getTotalActivitiesPending();
+  }
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @Get('total-cancelled')
+  async getTotalActivitiesCancelled() {
+    return this.activityService.getTotalActivitiesCancelled();
+  }
+  
 }

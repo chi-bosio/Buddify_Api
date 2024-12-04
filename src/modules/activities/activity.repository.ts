@@ -176,6 +176,7 @@ export class ActivityRepository {
         name: activity.creator?.name || '',
         lastname: activity.creator?.lastname || '',
         avatar: activity.creator?.avatar || '',
+        isPremium: activity.creator?.isPremium || '',
       },
       category: {
         id: activity.category?.id || '',
@@ -290,12 +291,12 @@ export class ActivityRepository {
     await queryRunner.startTransaction();
     try {
       const activity = await queryRunner.manager.findOne(Activity, {
-        where: { id: activityId },
+        where: { id: activityId, status: Not(In([ActivityStatus.CANCELLED,ActivityStatus.SUCCESS]))},
         relations: ['creator', 'participants'],
       });
 
       if (!activity) {
-        throw new NotFoundException('Actividad inexistente');
+        throw new NotFoundException('Actividad inexistente ,o ya cancelada ,o ya finalizada');
       }
 
       const user = await queryRunner.manager.findOne(Users, {
@@ -417,6 +418,22 @@ export class ActivityRepository {
       relations: ['creator', 'category', 'participants'],
     });
     const joinedActivities = user.participatedActivities;
+
+    const activityStatusOrder: { [key in ActivityStatus]: number } = {
+      [ActivityStatus.CONFIRMED]: 0,  
+      [ActivityStatus.PENDING]: 1,    
+      [ActivityStatus.SUCCESS]: 2,    
+      [ActivityStatus.CANCELLED]: 3,  
+    };
+
+    createdActivities.sort((a, b) => {
+      return activityStatusOrder[a.status] - activityStatusOrder[b.status];
+    });
+  
+    joinedActivities.sort((a, b) => {
+      return activityStatusOrder[a.status] - activityStatusOrder[b.status];
+    });
+
     return {
       created: createdActivities,
       joined: joinedActivities,
@@ -459,5 +476,43 @@ export class ActivityRepository {
     }
 
     return { count };
+  }
+
+  async getTotalActivitiesByMonth(): Promise<{ name: string; total: number }[]> {
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .select("TO_CHAR(activity.date, 'YYYY-MM')", 'name')
+      .addSelect('COUNT(activity.id)', 'total')
+      .groupBy("TO_CHAR(activity.date, 'YYYY-MM')")
+      .orderBy("TO_CHAR(activity.date, 'YYYY-MM')", 'ASC')
+      .getRawMany();
+  }
+
+  async getTotalActivitiesByCountry(): Promise<{ name: string; total: number }[]> {
+    return this.activityRepository
+      .createQueryBuilder('activity')
+      .innerJoin('activity.creator', 'creator')
+      .select('creator.country', 'name')
+      .addSelect('COUNT(activity.id)', 'total')
+      .groupBy('creator.country')
+      .orderBy('total', 'DESC')
+      .getRawMany();
+  }
+
+  async getTotalActivities(): Promise< number > {
+    return await this.activityRepository.count();
+  }
+
+  async getTotalActivitiesSuccess(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.SUCCESS}});
+  }
+  async getTotalActivitiesConfirmed(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.CONFIRMED}});
+  }
+  async getTotalActivitiesPending(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.PENDING}});
+  }
+  async getTotalActivitiesCancelled(): Promise< number > {
+    return await this.activityRepository.count({where:{status:ActivityStatus.CANCELLED}});
   }
 }

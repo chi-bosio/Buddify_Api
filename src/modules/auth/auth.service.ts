@@ -62,7 +62,7 @@ export class AuthService {
       avatar: user.avatar,
     };
 
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload,{ expiresIn: '24h' });
 
     return {
       success: true,
