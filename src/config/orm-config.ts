@@ -13,6 +13,6 @@ const ormConfig: TypeOrmModuleOptions = {
   entities: ['dist/**/*.entity{.ts,.js}'],
   autoLoadEntities: true,
   synchronize: true,
-  dropSchema: false,
+  dropSchema: true,
 };
 export default ormConfig;
