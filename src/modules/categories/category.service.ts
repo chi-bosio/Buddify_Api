@@ -22,6 +22,7 @@ export class CategoryService implements OnApplicationBootstrap {
       'Arte',
       'Negocios',
       'Videojuegos',
+      'Otra'
     ];
     await this.categoryRepository.createIfNotExists(categoriasIniciales);
   }
