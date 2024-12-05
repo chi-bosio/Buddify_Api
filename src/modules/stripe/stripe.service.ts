@@ -55,6 +55,7 @@ export class StripeService {
         metadata: metadata,
         automatic_payment_methods: { enabled: true },
       });
+      
 
       const payment = this.paymentRepository.create({
         userId,
@@ -65,7 +66,7 @@ export class StripeService {
         currency,
         stripePaymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
-        status: paymentIntent.status,
+        status: 'succeeded',
         cardholderName,
         paymentDate: new Date(paymentDate),
       });
