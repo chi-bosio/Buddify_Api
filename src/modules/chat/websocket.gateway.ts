@@ -15,11 +15,13 @@ import { Server, Socket } from 'socket.io';
 import { Repository, Not, In } from 'typeorm';
 import { MessageService } from '../message/message.service';
 import { ActivityStatus } from 'modules/activities/enums/activity-status.enum';
+import * as dotenv from 'dotenv';
 
+dotenv.config({ path: './.env' });
 @WebSocketGateway({
   namespace: '/chat',
   cors: {
-    origin: 'http://localhost:3000',
+    origin: `process.env.URL_FRONT`,
   },
 })
 export class WebsocketGateway

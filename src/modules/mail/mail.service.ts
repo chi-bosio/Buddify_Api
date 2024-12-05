@@ -4,7 +4,7 @@ import { sendMail } from '../../utils/mailer';
 import { AuthService } from '../auth/auth.service';
 import * as dotenv from 'dotenv';
 import * as moment from 'moment';
-dotenv.config({ path: './.env.local' });
+dotenv.config({ path: './.env' });
 
 @Injectable()
 export class MailService {
@@ -63,6 +63,28 @@ export class MailService {
     };
     await sendMail(mailOptions);
   }
+
+  async sendPremiumNotification(emailUser: string, username: string) {
+    const mailOptions: MailOptions = {
+      to: emailUser,
+      subject: '🎉 ¡Bienvenido a Premium en Buddify! 🎉',
+      html: `
+        <h1>Hola, ${username} 👋</h1>
+        <p>¡Estamos emocionados de darte la bienvenida al plan <strong>Premium</strong> de <strong>Buddify</strong>! 🌟</p>
+        <p>Ahora podrás disfrutar de beneficios exclusivos como:</p>
+        <ul>
+          <li>Acceso ilimitado a actividades.</li>
+          <li>¡Y mucho más!</li>
+        </ul>
+        <p>Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para asegurarnos de que tengas la mejor experiencia posible. 💖</p>
+        <p>Gracias por confiar en nosotros y ser parte de la familia <strong>Buddify</strong>. ¡Esperamos que disfrutes tu plan premium al máximo! 🎉</p>
+        <p>Con cariño,</p>
+        <p><strong>El equipo de Buddify</strong></p>
+      `,
+    };
+    await sendMail(mailOptions);
+  }
+  
 
   async sendWelcomeEmail(emailUser: string, username: string) {
     const mailOptions: MailOptions = {

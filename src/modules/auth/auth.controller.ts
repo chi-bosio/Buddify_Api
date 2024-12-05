@@ -23,7 +23,7 @@ import * as dotenv from 'dotenv';
 import { MailService } from '../mail/mail.service';
 import { ChangePswDto } from '../users/dtos/change-psw.dto';
 import { AuthGuard } from '../../guards/auth.guard';
-dotenv.config({ path: './.env.local' });
+dotenv.config({ path: './.env' });
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from '../users/dtos/complete-profile.dto';
 
