@@ -124,7 +124,7 @@ export class StripeService {
       return this.paymentRepository
       .createQueryBuilder('payment')
       .select("TO_CHAR(payment.paymentDate, 'YYYY-MM')", 'name') 
-      .addSelect('SUM(payment.amount) / 1000', 'total') 
+      .addSelect('SUM(payment.amount) / 100', 'total') 
       .where("payment.status = 'succeeded'") 
       .groupBy("TO_CHAR(payment.paymentDate, 'YYYY-MM')")
       .orderBy('name', 'ASC')
@@ -134,11 +134,11 @@ export class StripeService {
     async getTotalEarnings(): Promise<number> {
     const result = await this.paymentRepository
       .createQueryBuilder('payment')
-      .select('SUM(payment.amount)', 'total') 
+      .select('SUM(payment.amount)/100', 'total') 
       .where("payment.status = 'succeeded'")  
       .getRawOne();
 
-      return result?.total ? result.total / 1000 : 0; 
+      return result?.total ? result.total : 0; 
     }
     
     async isPremiumRight(id: string): Promise<boolean>{
