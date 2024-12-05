@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Payment } from './payment.entity';
 
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
-
+  
   constructor(
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
@@ -16,7 +16,7 @@ export class StripeService {
       apiVersion: '2024-11-20.acacia',
     });
   }
-
+  
   async createPaymentIntent(
     amount: number,
     currency: string,
@@ -69,9 +69,9 @@ export class StripeService {
         cardholderName,
         paymentDate: new Date(paymentDate),
       });
-
+      
       await this.paymentRepository.save(payment);
-
+      
       return { clientSecret: paymentIntent.client_secret };
     } catch (error) {
       console.error('Error al crear el PaymentIntent:', error);
@@ -81,7 +81,7 @@ export class StripeService {
 
   async updatePaymentStatus(paymentId: string) {
     const payment = await this.paymentRepository.findOne({ where: { id: paymentId } });
-
+    
     if (!payment) {
       throw new Error('Pago no encontrado');
     }
@@ -92,7 +92,7 @@ export class StripeService {
         Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
       },
     });
-
+    
     if (!response.ok) {
       throw new Error(`Error al obtener el PaymentIntent desde Stripe: ${response.statusText}`);
     }
@@ -102,7 +102,7 @@ export class StripeService {
       case 'succeeded':
         payment.status = 'succeeded';
         break;
-      case 'pending':
+        case 'pending':
         payment.status = 'pending';
         break;
       case 'failed':
@@ -111,16 +111,16 @@ export class StripeService {
       case 'canceled':
         payment.status = 'canceled';
         break;
-      default:
-        payment.status = 'unknown'; 
+        default:
+          payment.status = 'unknown'; 
         break;
+      }
+      
+      await this.paymentRepository.save(payment);
     }
-
-    await this.paymentRepository.save(payment);
-  }
-
-  async getMonthlyEarnings(): Promise<{ name: string; total: number }[]> {
-    return this.paymentRepository
+    
+    async getMonthlyEarnings(): Promise<{ name: string; total: number }[]> {
+      return this.paymentRepository
       .createQueryBuilder('payment')
       .select("TO_CHAR(payment.paymentDate, 'YYYY-MM')", 'name') 
       .addSelect('SUM(payment.amount) / 1000', 'total') 
@@ -128,16 +128,22 @@ export class StripeService {
       .groupBy("TO_CHAR(payment.paymentDate, 'YYYY-MM')")
       .orderBy('name', 'ASC')
       .getRawMany();
-  }
+    }
 
-  async getTotalEarnings(): Promise<number> {
+    async getTotalEarnings(): Promise<number> {
     const result = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('SUM(payment.amount)', 'total') 
       .where("payment.status = 'succeeded'")  
       .getRawOne();
 
-    return result?.total ? result.total / 1000 : 0; 
+      return result?.total ? result.total / 1000 : 0; 
+    }
+    
+    async isPremiumRight(id: string): Promise<boolean>{
+      let result = false;
+      const payment = await this.paymentRepository.findOne({where:{userId:id,status: Not('expired')}});
+      if(payment) result = true
+      return result;
+    }
   }
-  
-}

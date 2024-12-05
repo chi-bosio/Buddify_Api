@@ -6,6 +6,8 @@ import {
   HttpStatus,
   UseGuards,
   Get,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { AuthGuard } from 'guards/auth.guard';
@@ -89,6 +91,10 @@ export class StripeController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+  @Get('is-premium-right/:id')
+  async isPremiumRight(@Param('id',ParseUUIDPipe) id:string) {
+    return this.stripeService.isPremiumRight(id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
