@@ -157,6 +157,9 @@ export class UsersRepository {
     user.isPremium = updatePremiumStatusDto.isPremium;
 
     const updatedUser = await this.usersRepository.save(user);
+    if(updatePremiumStatusDto.isPremium){
+      await this.mailService.sendPremiumNotification(user.email,user.name)
+    }
 
     return {
       success: true,
