@@ -13,7 +13,7 @@ const ormConfig: TypeOrmModuleOptions = {
   entities: ['dist/**/*.entity{.ts,.js}'],
   autoLoadEntities: true,
   synchronize: true,
-  dropSchema: true,
+  dropSchema: false,
 };
 console.log(process.env.DB_HOST)
 console.log(parseInt(process.env.DB_PORT, 10))
